@@ -14,21 +14,41 @@ let project = Project(
                         "UIColorName": "",
                         "UIImageName": "",
                     ],
+                    "CFBundleDisplayName": "VetNet",
+                    "NSAppTransportSecurity": [
+                        "NSAllowsArbitraryLoads": true
+                    ]
                 ]
             ),
             sources: ["App/Sources/**"],
             resources: ["App/Resources/**"],
-            dependencies: []
+            entitlements: .dictionary([
+                "com.apple.developer.icloud-services": .array(["CloudKit"]),
+                "com.apple.developer.icloud-container-identifiers": .array(["iCloud.com.moroverse.VetNet"]),
+                "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
+                "com.apple.security.app-sandbox": true,
+                "com.apple.security.network.client": true,
+                "com.apple.security.files.user-selected.read-write": true
+            ]),
+            dependencies: [
+                .external(name: "Factory"),
+                .external(name: "SwiftUIRouting"),
+                .external(name: "Mockable"),
+            ]
         ),
         .target(
             name: "VetNetTests",
-            destinations: .iOS,
+            destinations: [.iPad, .iPhone],
             product: .unitTests,
-            bundleId: "com.moroverse.VetNet",
+            bundleId: "com.moroverse.VetNetTests",
             infoPlist: .default,
             sources: ["App/Tests/**"],
             resources: [],
-            dependencies: [.target(name: "VetNet")]
+            dependencies: [
+                .target(name: "VetNet"),
+                .external(name: "Mockable"),
+                .external(name: "ViewInspector")
+            ]
         ),
     ]
 )
