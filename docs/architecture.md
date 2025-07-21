@@ -20,9 +20,14 @@ This architecture directly implements the requirements defined in the PRD, with 
 
 ### Technical Summary
 
-The Veterinary Practice Intelligence application employs a modern iOS 26-native architecture utilizing Swift 6.2+ structured concurrency, SwiftData with custom DataStore protocols, and Liquid Glass design system for premium user experience. The system implements intelligent scheduling algorithms with VTL protocol integration, real-time multi-device synchronization, and Metal Performance Shaders optimization for complex calendar interfaces.
+The Veterinary Practice Intelligence application employs a **modular iOS 26-native architecture** built on Domain-Driven Design principles with clear bounded contexts. Each feature module maintains its own domain models, business logic, and well-defined boundaries, communicating through explicit interfaces. The architecture leverages Swift 6.2+ structured concurrency, SwiftData with custom DataStore protocols, and Liquid Glass design system for premium user experience.
 
-Key architectural decisions center on leveraging iOS 26's 40% GPU performance improvements and unified cross-platform design language while implementing sophisticated veterinary workflow intelligence through specialist matching algorithms and case complexity assessment.
+The system is organized into three primary layers:
+- **Feature Modules Layer**: Self-contained feature implementations with internal domain models
+- **Infrastructure Layer**: Technical capabilities (persistence, networking, device services)  
+- **Application Layer**: Orchestration, dependency injection, and module composition
+
+Key architectural decisions center on maintaining clear module boundaries while leveraging iOS 26's 40% GPU performance improvements and implementing sophisticated veterinary workflow intelligence through isolated, testable components.
 
 ### Platform and Infrastructure Choice
 
@@ -45,19 +50,45 @@ Key architectural decisions center on leveraging iOS 26's 40% GPU performance im
 
 ### Repository Structure
 
-**Approach**: **iOS Monorepo with Modular Package Architecture**
+**Approach**: **iOS Monorepo with Domain-Driven Modular Architecture**
 
-**Rationale**: Single repository optimized for iOS ecosystem development with clear module boundaries supporting future expansion while maintaining Swift Package Manager integration
+**Rationale**: Single repository with feature modules as isolated Swift packages, each containing its own bounded context with internal domain models and explicit public interfaces
 
 ```
-VeterinaryPracticeApp/
-├── VeterinaryPracticeApp/          # Main iOS application target
-├── VeterinaryCore/                 # Core business logic Swift package
-├── VeterinaryUI/                   # Liquid Glass UI components package
-├── SchedulingEngine/               # Intelligent scheduling algorithms package
-├── TriageProtocols/               # VTL and medical assessment protocols package
-├── DataModels/                    # SwiftData models and persistence layer
-└── Testing/                       # Shared testing utilities and mocks
+VetNet/
+├── App/                           # Main iOS application (composition root)
+│   ├── Sources/
+│   │   ├── VetNetApp.swift       # App entry point & dependency injection
+│   │   ├── CompositionRoot/      # Module wiring and DI container
+│   │   └── AppCoordinator/       # Top-level navigation orchestration
+│   └── Resources/
+├── Features/                      # Feature modules (bounded contexts)
+│   ├── Scheduling/               # Appointment scheduling domain
+│   │   ├── Domain/              # Internal models & business logic
+│   │   ├── Application/         # Use cases & services
+│   │   ├── Infrastructure/      # Module-specific persistence
+│   │   ├── Presentation/        # SwiftUI views & view models
+│   │   └── Public/              # Public interfaces & DTOs
+│   ├── Triage/                  # Medical triage assessment domain
+│   │   └── (same structure)
+│   ├── PatientRecords/          # Patient management domain
+│   │   └── (same structure)
+│   ├── SpecialistManagement/    # Specialist profiles domain
+│   │   └── (same structure)
+│   └── Analytics/               # Practice analytics domain
+│       └── (same structure)
+├── Infrastructure/               # Shared technical capabilities
+│   ├── Persistence/             # SwiftData + CloudKit abstractions
+│   ├── Networking/              # API clients & protocols
+│   ├── Authentication/          # Apple Sign-In & security
+│   ├── DeviceServices/          # Camera, location, etc.
+│   └── Monitoring/              # Logging & analytics
+├── UIKit/                       # Shared UI components
+│   ├── LiquidGlass/            # Glass effect components
+│   ├── DesignSystem/           # Colors, typography, spacing
+│   └── CommonViews/            # Reusable view components
+└── Modules/
+    └── SwiftUIRouting/         # Navigation framework
 ```
 
 ### High Level Architecture Diagram
@@ -88,27 +119,236 @@ graph TD
     style I fill:#90EE90
 ```
 
+## Modular Architecture Design
+
+### Architecture Overview
+
+The application follows a **Domain-Driven Design (DDD)** approach with **Clean Architecture** principles, ensuring each feature module is self-contained with clear boundaries and explicit dependencies.
+
+**Core Principles**:
+- **Bounded Contexts**: Each feature module represents a distinct bounded context with its own ubiquitous language
+- **Dependency Rule**: Dependencies point inward - Presentation depends on Application, Application depends on Domain
+- **Interface Segregation**: Modules communicate only through well-defined public interfaces
+- **Single Responsibility**: Each module handles one cohesive set of business capabilities
+
+### Feature Module Structure
+
+Each feature module follows a consistent internal architecture:
+
+```swift
+// Example: Scheduling Module Structure
+Features/Scheduling/
+├── Package.swift                    # Module definition
+├── Sources/
+│   ├── Domain/                     # Core business logic (no external dependencies)
+│   │   ├── Models/
+│   │   │   ├── Appointment.swift   # Internal domain model
+│   │   │   ├── TimeSlot.swift
+│   │   │   └── ScheduleRules.swift
+│   │   ├── Services/
+│   │   │   └── SchedulingPolicy.swift
+│   │   └── Repositories/
+│   │       └── AppointmentRepository.swift  # Protocol only
+│   ├── Application/                # Use cases & application services
+│   │   ├── UseCases/
+│   │   │   ├── ScheduleAppointmentUseCase.swift
+│   │   │   └── RescheduleAppointmentUseCase.swift
+│   │   └── Services/
+│   │       └── ConflictResolutionService.swift
+│   ├── Infrastructure/             # Technical implementations
+│   │   ├── Persistence/
+│   │   │   └── SwiftDataAppointmentRepository.swift
+│   │   └── External/
+│   │       └── CalendarIntegration.swift
+│   ├── Presentation/              # UI Layer
+│   │   ├── ViewModels/
+│   │   │   └── SchedulingViewModel.swift
+│   │   └── Views/
+│   │       └── ScheduleCalendarView.swift
+│   └── Public/                    # Public API
+│       ├── SchedulingModuleInterface.swift
+│       ├── DTOs/
+│       │   └── AppointmentDTO.swift
+│       └── Events/
+│           └── AppointmentScheduledEvent.swift
+```
+
+**Domain Layer Rules**:
+- Pure Swift with no framework dependencies
+- Contains business logic and domain models
+- Defines repository interfaces (not implementations)
+
+**Application Layer Rules**:
+- Orchestrates domain objects
+- Implements use cases
+- No UI or infrastructure concerns
+
+**Infrastructure Layer Rules**:
+- Implements repository interfaces
+- Handles persistence, networking
+- Framework-specific code lives here
+
+**Presentation Layer Rules**:
+- SwiftUI views and view models
+- Depends only on Application layer
+- Uses DTOs for external communication
+
+### Infrastructure Layer
+
+The Infrastructure layer provides shared technical capabilities that feature modules can utilize:
+
+```swift
+// Infrastructure/Persistence/PersistenceProtocol.swift
+public protocol PersistenceStore {
+    associatedtype Model
+    func save(_ model: Model) async throws
+    func fetch(id: UUID) async throws -> Model?
+    func query(_ predicate: Predicate<Model>) async throws -> [Model]
+}
+
+// Infrastructure/Persistence/SwiftDataStore.swift
+public final class SwiftDataStore<T: PersistentModel>: PersistenceStore {
+    private let modelContainer: ModelContainer
+    
+    public func save(_ model: T) async throws {
+        // SwiftData implementation with CloudKit sync
+    }
+}
+
+// Infrastructure/EventBus/EventBus.swift
+public protocol EventBus {
+    func publish<E: DomainEvent>(_ event: E) async
+    func subscribe<E: DomainEvent>(to eventType: E.Type, handler: @escaping (E) async -> Void)
+}
+```
+
+**Key Infrastructure Components**:
+- **Persistence Abstraction**: Generic protocols for data storage
+- **Event Bus**: For inter-module communication
+- **Device Services**: Camera, location, biometrics wrappers
+- **Monitoring**: Centralized logging and analytics
+- **Security**: Encryption and authentication services
+
+### Application Layer
+
+The Application layer serves as the composition root that wires modules together:
+
+```swift
+// App/Sources/CompositionRoot/AppContainer.swift
+@MainActor
+final class AppContainer {
+    // Infrastructure services
+    private let persistenceProvider: PersistenceProvider
+    private let eventBus: EventBus
+    private let authenticationService: AuthenticationService
+    
+    // Feature modules
+    private(set) lazy var schedulingModule = SchedulingModule(
+        persistenceStore: persistenceProvider.makeStore(for: Appointment.self),
+        eventBus: eventBus
+    )
+    
+    private(set) lazy var triageModule = TriageModule(
+        persistenceStore: persistenceProvider.makeStore(for: TriageAssessment.self),
+        eventBus: eventBus
+    )
+    
+    private(set) lazy var patientModule = PatientRecordsModule(
+        persistenceStore: persistenceProvider.makeStore(for: Patient.self),
+        eventBus: eventBus
+    )
+    
+    // App-level coordinator
+    private(set) lazy var appCoordinator = AppCoordinator(
+        schedulingInterface: schedulingModule.publicInterface,
+        triageInterface: triageModule.publicInterface,
+        patientInterface: patientModule.publicInterface,
+        router: router
+    )
+}
+```
+
+**Application Layer Responsibilities**:
+- Dependency injection and module wiring
+- Cross-cutting concerns (authentication, analytics)
+- Top-level navigation coordination
+- App lifecycle management
+
+### Inter-Module Communication
+
+Modules communicate through three primary mechanisms:
+
+**1. Direct Interface Calls**:
+```swift
+// Public interface exposed by Scheduling module
+public protocol SchedulingModuleInterface {
+    func scheduleAppointment(request: SchedulingRequestDTO) async throws -> AppointmentDTO
+    func getAvailableSlots(date: Date, duration: TimeInterval) async -> [TimeSlotDTO]
+}
+
+// Triage module using Scheduling interface
+class TriageCompletionUseCase {
+    private let schedulingInterface: SchedulingModuleInterface
+    
+    func completeTriageAndSchedule(assessment: TriageAssessment) async throws {
+        let schedulingRequest = mapToSchedulingRequest(assessment)
+        let appointment = try await schedulingInterface.scheduleAppointment(request: schedulingRequest)
+    }
+}
+```
+
+**2. Domain Events**:
+```swift
+// Scheduling module publishes event
+public struct AppointmentScheduledEvent: DomainEvent {
+    public let appointmentId: UUID
+    public let patientId: UUID
+    public let specialistId: UUID
+    public let scheduledTime: Date
+}
+
+// Analytics module subscribes to events
+class AnalyticsEventHandler {
+    init(eventBus: EventBus) {
+        eventBus.subscribe(to: AppointmentScheduledEvent.self) { event in
+            await self.trackAppointmentMetrics(event)
+        }
+    }
+}
+```
+
+**3. Shared DTOs**:
+```swift
+// Shared DTO for cross-module data transfer
+public struct PatientDTO: Codable {
+    public let id: UUID
+    public let name: String
+    public let species: String
+    // Only data needed for external communication
+}
+```
+
 ### Architectural Patterns
 
-**iOS 26 + SwiftUI MVVM with Intelligent Scheduling**
-- **Pattern**: Model-View-ViewModel optimized for SwiftUI @Observable and iOS 26 Liquid Glass components
-- **Rationale**: Leverages iOS 26 performance improvements while maintaining clear separation between scheduling intelligence and user interface
+**iOS 26 + SwiftUI MVVM with Modular Boundaries**
+- **Pattern**: MVVM within each module's Presentation layer, with ViewModels as module boundaries
+- **Rationale**: Maintains UI/business logic separation while respecting module isolation
 
-**Dependency Injection with Factory Pattern**
-- **Pattern**: Factory-based dependency injection for testable architecture and clear service boundaries
-- **Rationale**: Enables comprehensive testing of scheduling algorithms and seamless integration with Mockable for service layer validation
+**Repository Pattern with Protocol Abstraction**
+- **Pattern**: Domain defines repository protocols, Infrastructure provides implementations
+- **Rationale**: Allows testing with mocks and swapping implementations without affecting business logic
 
-**Command Pattern for Scheduling Operations**
-- **Pattern**: Command-based scheduling actions with undo/redo support for appointment management
-- **Rationale**: Supports complex scheduling scenarios, conflict resolution, and audit trail requirements for medical software compliance
+**Use Case Pattern**
+- **Pattern**: Each user interaction maps to a specific use case class in the Application layer
+- **Rationale**: Encapsulates business workflows and makes testing straightforward
 
-**Observer Pattern with Combine + SwiftData**
-- **Pattern**: Reactive data flow using Combine publishers with SwiftData @Query integration for real-time updates
-- **Rationale**: Ensures immediate UI updates across devices when appointments, specialist availability, or patient information changes
+**Event-Driven Architecture**
+- **Pattern**: Loose coupling between modules through domain events
+- **Rationale**: Modules can react to changes without direct dependencies
 
-**Strategy Pattern for Triage Protocols**
-- **Pattern**: Pluggable triage assessment strategies (VTL, ABCDE, custom protocols) with consistent interface
-- **Rationale**: Allows adaptation to different veterinary practice protocols while maintaining core scheduling intelligence
+**DTO Pattern for Boundaries**
+- **Pattern**: Data Transfer Objects for all inter-module communication
+- **Rationale**: Prevents internal model changes from affecting other modules
 
 ## Tech Stack
 
@@ -131,11 +371,289 @@ graph TD
 | **Accessibility** | iOS 26 Accessibility APIs | iOS 26 | Professional compliance | Accessibility Reader, enhanced VoiceOver, medical standards |
 | **Design System** | Liquid Glass | iOS 26 | Premium visual interface | Research-validated performance improvements |
 
+## Feature Module Specifications
+
+### Scheduling Module
+
+**Bounded Context**: Appointment scheduling and calendar management
+
+**Core Responsibilities**:
+- Managing appointment lifecycle (create, update, cancel, complete)
+- Scheduling conflict detection and resolution
+- Time slot availability calculation
+- Specialist workload balancing
+- Appointment duration prediction
+
+**Internal Domain Models**:
+```swift
+// Domain/Models/Appointment.swift (Internal)
+struct Appointment {
+    let id: AppointmentId
+    let timeSlot: TimeSlot
+    let patientReference: PatientReference  // Just ID, not full patient
+    let specialistReference: SpecialistReference
+    let estimatedDuration: Duration
+    let actualDuration: Duration?
+    let status: AppointmentStatus
+    let type: AppointmentType
+    
+    // Business logic methods
+    func canReschedule(to newSlot: TimeSlot) -> Bool
+    func calculateBufferTime() -> Duration
+}
+
+// Domain/ValueObjects/TimeSlot.swift
+struct TimeSlot: Equatable {
+    let start: Date
+    let end: Date
+    
+    func overlaps(with other: TimeSlot) -> Bool
+    func duration() -> TimeInterval
+}
+```
+
+**Public Interface**:
+```swift
+public protocol SchedulingModuleInterface {
+    // Commands
+    func scheduleAppointment(_ request: ScheduleAppointmentRequest) async throws -> AppointmentDTO
+    func rescheduleAppointment(_ appointmentId: UUID, to newSlot: TimeSlotDTO) async throws -> AppointmentDTO
+    func cancelAppointment(_ appointmentId: UUID, reason: String) async throws
+    
+    // Queries
+    func getAvailableSlots(for date: Date, specialist: UUID?, duration: TimeInterval) async -> [TimeSlotDTO]
+    func getAppointments(for date: Date) async -> [AppointmentDTO]
+}
+```
+
+### Triage Module
+
+**Bounded Context**: Medical assessment and urgency classification
+
+**Core Responsibilities**:
+- VTL protocol implementation
+- ABCDE assessment workflow
+- Case complexity scoring
+- Specialist recommendation engine
+- Triage history tracking
+
+**Internal Domain Models**:
+```swift
+// Domain/Models/TriageAssessment.swift (Internal)
+struct TriageAssessment {
+    let id: AssessmentId
+    let patientReference: PatientReference
+    let vtlLevel: VTLUrgencyLevel
+    let abcdeResults: ABCDEAssessment
+    let complexityScore: ComplexityScore
+    let symptoms: [Symptom]
+    let vitalSigns: VitalSigns?
+    
+    // Business logic
+    func calculateUrgency() -> UrgencyLevel
+    func recommendSpecialties() -> [SpecialtyRecommendation]
+}
+
+// Domain/ValueObjects/VTLUrgencyLevel.swift
+enum VTLUrgencyLevel: Int {
+    case red = 1      // Immediate
+    case orange = 2   // Very urgent
+    case yellow = 3   // Urgent
+    case green = 4    // Standard
+    case blue = 5     // Non-urgent
+    
+    var maxWaitTime: TimeInterval { /* ... */ }
+}
+```
+
+**Public Interface**:
+```swift
+public protocol TriageModuleInterface {
+    func startAssessment(for patientId: UUID) async throws -> AssessmentSessionDTO
+    func submitAssessment(_ assessment: TriageSubmissionDTO) async throws -> TriageResultDTO
+    func getAssessmentHistory(for patientId: UUID) async -> [TriageHistoryDTO]
+}
+```
+
+### Patient Records Module
+
+**Bounded Context**: Patient information and medical history management
+
+**Core Responsibilities**:
+- Patient demographics management
+- Medical history tracking
+- Owner information handling
+- Species-specific data management
+- Document and image storage
+
+**Internal Domain Models**:
+```swift
+// Domain/Models/Patient.swift (Internal)
+struct Patient {
+    let id: PatientId
+    let name: String
+    let species: Species
+    let breed: Breed?
+    let dateOfBirth: Date?
+    let medicalRecord: MedicalRecord
+    let owner: Owner
+    
+    // Business logic
+    func calculateAge() -> Age?
+    func isVaccinationDue() -> Bool
+    func getSpeciesSpecificProtocols() -> [Protocol]
+}
+
+// Domain/Models/MedicalRecord.swift
+struct MedicalRecord {
+    let recordNumber: String
+    let conditions: [MedicalCondition]
+    let medications: [Medication]
+    let allergies: [Allergy]
+    let vaccinations: [Vaccination]
+}
+```
+
+**Public Interface**:
+```swift
+public protocol PatientRecordsModuleInterface {
+    func createPatient(_ request: CreatePatientRequest) async throws -> PatientDTO
+    func updatePatient(_ patientId: UUID, updates: PatientUpdateRequest) async throws -> PatientDTO
+    func getPatient(_ patientId: UUID) async throws -> PatientDTO
+    func searchPatients(_ criteria: SearchCriteria) async -> [PatientSummaryDTO]
+}
+```
+
+### Specialist Management Module
+
+**Bounded Context**: Veterinary staff profiles and availability
+
+**Core Responsibilities**:
+- Specialist profile management
+- Availability schedule configuration
+- Expertise area tracking
+- Workload preferences
+- Performance metrics
+
+**Internal Domain Models**:
+```swift
+// Domain/Models/Specialist.swift (Internal)
+struct Specialist {
+    let id: SpecialistId
+    let name: String
+    let credentials: Credentials
+    let expertiseAreas: [ExpertiseArea]
+    let availability: AvailabilitySchedule
+    let preferences: WorkPreferences
+    
+    // Business logic
+    func canHandleCase(_ complexity: ComplexityScore) -> Bool
+    func isAvailable(at timeSlot: TimeSlot) -> Bool
+    func calculateWorkload(for date: Date) -> WorkloadScore
+}
+
+// Domain/ValueObjects/ExpertiseArea.swift
+struct ExpertiseArea {
+    let specialty: VeterinarySpecialty
+    let proficiencyLevel: ProficiencyLevel
+    let yearsExperience: Int
+}
+```
+
+**Public Interface**:
+```swift
+public protocol SpecialistManagementInterface {
+    func getSpecialist(_ specialistId: UUID) async throws -> SpecialistDTO
+    func updateAvailability(_ specialistId: UUID, schedule: AvailabilityScheduleDTO) async throws
+    func findSpecialists(for expertise: String) async -> [SpecialistSummaryDTO]
+}
+```
+
+### Analytics Module
+
+**Bounded Context**: Practice performance and insights
+
+**Core Responsibilities**:
+- Appointment metrics tracking
+- Practice efficiency analysis
+- Revenue reporting
+- Patient flow visualization
+- Predictive analytics
+
+**Internal Domain Models**:
+```swift
+// Domain/Models/PracticeMetrics.swift (Internal)
+struct PracticeMetrics {
+    let period: DateRange
+    let appointmentMetrics: AppointmentMetrics
+    let patientFlowMetrics: PatientFlowMetrics
+    let specialistUtilization: [SpecialistUtilization]
+    let financialMetrics: FinancialMetrics
+    
+    // Analytics logic
+    func calculateEfficiencyScore() -> EfficiencyScore
+    func identifyBottlenecks() -> [Bottleneck]
+    func generateInsights() -> [Insight]
+}
+```
+
+**Public Interface**:
+```swift
+public protocol AnalyticsModuleInterface {
+    func getDashboardMetrics() async -> DashboardMetricsDTO
+    func generateReport(_ type: ReportType, period: DateRange) async -> ReportDTO
+    func subscribeToMetrics(_ metrics: [MetricType]) -> AsyncStream<MetricUpdateDTO>
+}
+```
+
 ## Data Models
+
+### Modular Data Architecture
+
+With the modular architecture, data models are organized into three categories:
+
+**1. Internal Domain Models**: Rich domain objects with business logic, residing within feature modules
+**2. Data Transfer Objects (DTOs)**: Simple data structures for inter-module communication
+**3. Persistence Models**: SwiftData entities in the Infrastructure layer
+
+### Data Model Mapping Strategy
+
+```swift
+// Example: Appointment data flow
+// 1. Internal Domain Model (Features/Scheduling/Domain)
+struct Appointment {
+    let id: AppointmentId
+    let timeSlot: TimeSlot
+    // Rich business logic here
+}
+
+// 2. DTO for public interface (Features/Scheduling/Public)
+public struct AppointmentDTO: Codable {
+    public let id: UUID
+    public let startTime: Date
+    public let endTime: Date
+    public let patientId: UUID
+    public let specialistId: UUID
+}
+
+// 3. Persistence Model (Infrastructure/Persistence)
+@Model
+final class AppointmentEntity {
+    @Attribute(.unique) var id: UUID
+    var startTime: Date
+    var endTime: Date
+    var patientId: UUID
+    var specialistId: UUID
+    
+    // SwiftData relationships
+    @Relationship var patient: PatientEntity?
+    @Relationship var specialist: SpecialistEntity?
+}
+```
 
 ### Core Business Entities
 
-The data model architecture leverages SwiftData with iOS 26 enhancements including custom DataStore protocols, compound uniqueness constraints, and performance optimization through strategic indexing.
+The following entities represent the persistence layer models that support the domain models:
 
 ### Practice Entity
 **Purpose**: Represents veterinary practice organization with staff, specialists, and operational parameters
@@ -342,161 +860,132 @@ final class TriageAssessment {
 
 ## Components
 
-### Intelligent Scheduling Engine
-**Responsibility**: Core scheduling intelligence combining VTL protocols, specialist matching algorithms, and schedule optimization for optimal appointment routing
+With the modular architecture, components are organized within their respective feature modules and infrastructure layers:
 
-**Key Interfaces**:
-- `assessCaseComplexity(symptoms: [Symptom], patient: Patient) -> CaseComplexityScore`
-- `findOptimalSpecialist(assessment: TriageAssessment, availability: AvailabilityWindow) -> SpecialistMatchResult`
-- `optimizeSchedule(appointments: [Appointment], constraints: SchedulingConstraints) -> ScheduleOptimization`
+### Module-Specific Components
 
-**Dependencies**: TriageProtocols package, CoreML integration, Metal Performance Shaders
-**Technology Stack**: Swift 6.2+ structured concurrency, Core ML for predictive analytics, SwiftData for real-time data access
+**Scheduling Module Components**:
+- **SchedulingEngine**: Core scheduling intelligence within the Scheduling module's Application layer
+- **ConflictResolver**: Handles scheduling conflicts and overlaps
+- **WorkloadBalancer**: Distributes appointments across specialists
+- **TimeSlotCalculator**: Computes available time slots
 
-**Implementation Architecture**:
+**Triage Module Components**:
+- **VTLProtocolEngine**: Implements veterinary triage protocols
+- **ABCDEAssessmentService**: Systematic clinical evaluation workflow
+- **ComplexityScorer**: AI-powered case complexity calculation
+- **SpecialistRecommender**: Matches cases to appropriate specialists
+
+**Patient Records Module Components**:
+- **MedicalHistoryService**: Manages patient medical records
+- **VaccinationTracker**: Monitors vaccination schedules
+- **DocumentManager**: Handles medical documents and images
+
+### Infrastructure Components
+
+**Persistence Layer**:
 ```swift
-@MainActor
-final class SchedulingEngine: ObservableObject {
-    private let triageService: TriageService
-    private let specialistMatcher: SpecialistMatchingService
-    private let scheduleOptimizer: ScheduleOptimizationService
+// Infrastructure/Persistence/DataStoreProvider.swift
+public final class DataStoreProvider {
+    private let modelContainer: ModelContainer
     
-    @Published var currentOptimization: ScheduleOptimization?
-    @Published var availableSpecialists: [SpecialistAvailability] = []
-    
-    func processAppointmentRequest(_ request: AppointmentRequest) async -> SchedulingRecommendation {
-        // Implement intelligent scheduling workflow
+    public func makeStore<T: PersistentModel>(for type: T.Type) -> any PersistenceStore {
+        SwiftDataStore<T>(container: modelContainer)
+    }
+}
+
+// Infrastructure/Persistence/CloudKitSync.swift
+public final class CloudKitSyncService {
+    func configureSync(for container: ModelContainer) {
+        // Configure CloudKit zones and subscriptions
     }
 }
 ```
 
-### Liquid Glass UI Framework
-**Responsibility**: iOS 26 Liquid Glass design system implementation with veterinary-specific components and accessibility compliance
-
-**Key Interfaces**:
-- `GlassScheduleCalendar`: Interactive calendar with glass morphing effects
-- `GlassSpecialistCard`: Specialist information with interactive glass presentation
-- `GlassTriageForm`: QuickForm integration with glass visual effects
-- `GlassAppointmentSheet`: Floating appointment details with glass background
-
-**Dependencies**: SwiftUI iOS 26, Liquid Glass APIs, StateKit for complex states
-**Technology Stack**: glassEffect() modifiers, GlassEffectContainer, interactive animations
-
-**Implementation Architecture**:
+**Event Bus Implementation**:
 ```swift
-struct GlassScheduleCalendar: View {
-    @State private var selectedDate: Date = Date()
-    @State private var appointments: [Appointment] = []
+// Infrastructure/EventBus/InMemoryEventBus.swift
+public final class InMemoryEventBus: EventBus {
+    private var handlers: [String: [Any]] = [:]
     
-    var body: some View {
-        GlassEffectContainer {
-            CalendarView(selection: $selectedDate)
-                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
-            
-            AppointmentListView(appointments: appointments)
-                .glassEffect(.thin, in: .rect(cornerRadius: 12))
+    public func publish<E: DomainEvent>(_ event: E) async {
+        let key = String(describing: type(of: event))
+        guard let eventHandlers = handlers[key] else { return }
+        
+        for handler in eventHandlers {
+            if let typedHandler = handler as? (E) async -> Void {
+                await typedHandler(event)
+            }
         }
     }
 }
 ```
 
-### VTL Triage Protocol Engine
-**Responsibility**: Implementation of Veterinary Triage List protocols with ABCDE assessment integration and case complexity analysis
-
-**Key Interfaces**:
-- `assessVTLUrgency(symptoms: [Symptom], vitals: VitalSigns) -> VTLUrgencyLevel`
-- `performABCDEAssessment(patient: Patient, observations: [ClinicalObservation]) -> ABCDEResult`
-- `calculateComplexityScore(assessment: TriageAssessment, history: MedicalHistory) -> Float`
-
-**Dependencies**: Medical protocol databases, Core ML for pattern recognition
-**Technology Stack**: Structured assessment algorithms, machine learning integration
-
-### SwiftUIRouting Navigation Service
-**Responsibility**: Custom navigation framework optimized for veterinary workflows with deep linking and state preservation
-
-**Key Interfaces**:
-- `navigateToSchedule(appointmentID: UUID?) -> NavigationResult`
-- `presentTriageFlow(patientID: UUID) -> TriageNavigationController`
-- `handleDeepLink(url: URL) async -> DeepLinkResult`
-- `preserveNavigationState() -> NavigationSnapshot`
-
-**Dependencies**: SwiftUI NavigationStack, StateKit for complex navigation states
-**Technology Stack**: Custom routing with deep link handling, veterinary workflow optimization
-**Module Location**: `Modules/SwiftUIRouting`
-
-**Implementation Architecture**:
+**Navigation Service**:
 ```swift
-@MainActor
-final class VeterinaryNavigationController: ObservableObject {
-    @Published var navigationPath = NavigationPath()
-    @Published var currentFlow: VeterinaryWorkflow?
+// Modules/SwiftUIRouting/VeterinaryRouter.swift
+public final class VeterinaryRouter: ObservableObject {
+    @Published public var navigationPath = NavigationPath()
+    private var moduleCoordinators: [String: any ModuleCoordinator] = [:]
     
-    private let router: SwiftUIRouter
-    
-    func navigateToPatientDetail(_ patientID: UUID) {
-        navigationPath.append(VeterinaryDestination.patientDetail(patientID))
+    public func navigateToModule<T: ModuleCoordinator>(_ module: T.Type, destination: T.Destination) {
+        let coordinator = moduleCoordinators[String(describing: module)] as? T
+        coordinator?.navigate(to: destination, router: self)
     }
-    
-    func startTriageWorkflow(for patient: Patient) {
-        currentFlow = .triage(patient)
-        navigationPath.append(VeterinaryDestination.triageAssessment(patient.id))
-    }
-}
-
-enum VeterinaryDestination: Hashable {
-    case scheduleCalendar
-    case patientDetail(UUID)
-    case triageAssessment(UUID)
-    case specialistSelection(TriageAssessment)
-    case appointmentConfirmation(Appointment)
 }
 ```
 
-### Real-time Synchronization Service
-**Responsibility**: CloudKit-based multi-device synchronization with conflict resolution and offline capability
+### Shared UI Components
 
-**Key Interfaces**:
-- `syncAppointmentChanges() async -> SyncResult`
-- `resolveSchedulingConflicts([ConflictingAppointment]) async -> ConflictResolution`
-- `enableOfflineMode() -> OfflineCapabilities`
+**Liquid Glass Design System**:
+```swift
+// UIKit/LiquidGlass/GlassComponents.swift
+public struct GlassContainer<Content: View>: View {
+    let content: Content
+    let style: GlassStyle
+    
+    public var body: some View {
+        content
+            .glassEffect(style.effect, in: style.shape)
+            .accessibilityElement(children: .contain)
+    }
+}
 
-**Dependencies**: CloudKit, SwiftData custom DataStore protocol
-**Technology Stack**: iOS 26 background sync, compound uniqueness constraints
-
-### Specialist Matching Algorithm
-**Responsibility**: AI-powered specialist-to-case matching considering expertise, availability, and practice optimization factors
-
-**Key Interfaces**:
-- `calculateSpecialistMatch(specialist: Specialist, assessment: TriageAssessment) -> MatchScore`
-- `findOptimalTimeSlot(specialist: Specialist, duration: TimeInterval, urgency: VTLUrgencyLevel) -> TimeSlot?`
-- `balanceWorkload(specialists: [Specialist], newAppointment: Appointment) -> WorkloadOptimization`
-
-**Dependencies**: Core ML, historical outcome data, practice efficiency metrics
-**Technology Stack**: Metal Performance Shaders for optimization, structured concurrency
+// UIKit/DesignSystem/VetNetTheme.swift
+public enum VetNetTheme {
+    public static let colors = ColorPalette()
+    public static let typography = Typography()
+    public static let spacing = Spacing()
+    public static let glass = GlassStyles()
+}
+```
 
 ## Component Interaction Diagram
 
 ```mermaid
 sequenceDiagram
-    participant UI as Liquid Glass UI
-    participant SE as Scheduling Engine
-    participant TE as Triage Engine
-    participant SM as Specialist Matcher
-    participant SD as SwiftData Store
-    participant CK as CloudKit
+    participant App as App Layer
+    participant TM as Triage Module
+    participant SM as Scheduling Module
+    participant PM as Patient Module
+    participant EB as Event Bus
+    participant Infra as Infrastructure
     
-    UI->>SE: New appointment request
-    SE->>TE: Assess case complexity
-    TE->>TE: Apply VTL protocols
-    TE-->>SE: Return triage assessment
-    SE->>SM: Find optimal specialist
-    SM->>SD: Query specialist availability
-    SD-->>SM: Return availability data
-    SM-->>SE: Return specialist recommendations
-    SE->>SD: Create appointment
-    SD->>CK: Sync across devices
-    CK-->>UI: Update real-time calendar
-    UI->>UI: Refresh glass interface
+    App->>TM: Start triage assessment
+    TM->>PM: Get patient data (via interface)
+    PM-->>TM: Return PatientDTO
+    TM->>TM: Apply VTL protocols
+    TM->>TM: Calculate complexity
+    TM->>SM: Request appointment (via interface)
+    SM->>SM: Find available slots
+    SM->>SM: Match specialists
+    SM->>Infra: Persist appointment
+    Infra-->>SM: Confirm saved
+    SM->>EB: Publish AppointmentScheduledEvent
+    EB->>PM: Notify (update patient record)
+    EB->>Analytics: Track metrics
+    SM-->>TM: Return AppointmentDTO
+    TM-->>App: Complete workflow
 ```
 
 ## External APIs
@@ -528,37 +1017,87 @@ sequenceDiagram
 
 ## Core Workflows
 
-### Intelligent Appointment Scheduling Workflow
+### Modular Appointment Scheduling Workflow
 
 ```mermaid
 sequenceDiagram
-    participant S as Staff Member
-    participant UI as Liquid Glass Interface
-    participant QF as QuickForm Triage
-    participant TE as Triage Engine
-    participant SM as Specialist Matcher
-    participant SO as Schedule Optimizer
-    participant SD as SwiftData
+    participant Staff as Staff Member
+    participant App as App Coordinator
+    participant Triage as Triage Module
+    participant Patient as Patient Module
+    participant Schedule as Scheduling Module
+    participant Specialist as Specialist Module
+    participant Event as Event Bus
     
-    S->>UI: Initiate new appointment
-    UI->>QF: Launch guided triage form
-    QF->>S: Present VTL assessment questions
-    S->>QF: Complete triage responses
-    QF->>TE: Process assessment data
-    TE->>TE: Apply VTL + ABCDE protocols
-    TE->>TE: Calculate case complexity score
-    TE-->>SM: Send assessment results
-    SM->>SD: Query specialist availability
-    SM->>SM: Calculate specialist matches
-    SM-->>SO: Send matching results
-    SO->>SO: Optimize appointment timing
-    SO-->>UI: Present recommendations
-    UI->>S: Display specialist options with glass morphing
-    S->>UI: Select preferred option
-    UI->>SD: Create appointment record
-    SD->>SD: Apply compound uniqueness constraints
-    SD-->>UI: Confirm appointment creation
-    UI->>UI: Update calendar with glass effects
+    Staff->>App: Initiate new appointment
+    App->>Patient: Get patient info
+    Patient-->>App: PatientDTO
+    App->>Triage: Start assessment(patientId)
+    Triage->>Staff: Present VTL questions
+    Staff->>Triage: Submit responses
+    Triage->>Triage: Calculate urgency & complexity
+    Triage->>Specialist: Get recommendations
+    Specialist-->>Triage: Specialist matches
+    Triage-->>App: TriageResultDTO
+    App->>Schedule: Request appointment
+    Schedule->>Specialist: Check availability
+    Specialist-->>Schedule: Available slots
+    Schedule->>Schedule: Optimize timing
+    Schedule-->>App: Appointment options
+    App->>Staff: Display options
+    Staff->>App: Select appointment
+    App->>Schedule: Confirm appointment
+    Schedule->>Event: AppointmentScheduledEvent
+    Event->>Patient: Update record
+    Event->>Analytics: Track metrics
+    Schedule-->>App: AppointmentDTO
+    App->>Staff: Show confirmation
+```
+
+### Cross-Module Data Flow Example
+
+```mermaid
+graph LR
+    subgraph Triage Module
+        TD[Triage Domain Model]
+        TU[Triage Use Case]
+        TDTO[TriageDTO]
+    end
+    
+    subgraph Patient Module
+        PD[Patient Domain Model]
+        PU[Patient Use Case]
+        PDTO[PatientDTO]
+    end
+    
+    subgraph Scheduling Module
+        SD[Schedule Domain Model]
+        SU[Schedule Use Case]
+        SDTO[ScheduleDTO]
+    end
+    
+    subgraph Infrastructure
+        DB[(SwiftData)]
+        EB{{Event Bus}}
+    end
+    
+    TU -->|Query| PDTO
+    PU -->|Return| PDTO
+    TU -->|Create| TDTO
+    TU -->|Request| SDTO
+    SU -->|Return| SDTO
+    
+    TD -.->|Map| TDTO
+    PD -.->|Map| PDTO
+    SD -.->|Map| SDTO
+    
+    SU -->|Persist| DB
+    SU -->|Publish| EB
+    EB -->|Notify| PU
+    
+    style TD fill:#FFE4B5
+    style PD fill:#E6E6FA
+    style SD fill:#ADD8E6
 ```
 
 ## iOS 26 Architecture Specifications
@@ -1009,6 +1548,64 @@ struct AccessibilityTests {
 }
 ```
 
+### Modular Testing Strategy
+
+**Module Isolation Testing**:
+```swift
+// Each module has its own test target with mocked dependencies
+@Suite("Scheduling Module Tests")
+struct SchedulingModuleTests {
+    // Mock infrastructure dependencies
+    let mockPersistence = MockPersistenceStore()
+    let mockEventBus = MockEventBus()
+    
+    // Test module in isolation
+    @Test("Schedule appointment with conflict detection")
+    func testScheduleAppointmentWithConflict() async throws {
+        let module = SchedulingModule(
+            persistenceStore: mockPersistence,
+            eventBus: mockEventBus
+        )
+        
+        // Test business logic without external dependencies
+        let result = try await module.scheduleAppointment(request)
+        #expect(result.status == .conflictDetected)
+    }
+}
+```
+
+**Inter-Module Integration Testing**:
+```swift
+@Suite("Module Integration Tests")
+struct ModuleIntegrationTests {
+    @Test("Triage to Scheduling workflow")
+    func testTriageToSchedulingIntegration() async throws {
+        // Use in-memory implementations for integration tests
+        let container = TestAppContainer()
+        
+        // Test actual module communication
+        let triageResult = try await container.triageModule.submitAssessment(assessment)
+        let appointment = try await container.schedulingModule.scheduleFromTriage(triageResult)
+        
+        #expect(appointment.urgencyLevel == triageResult.vtlLevel)
+    }
+}
+```
+
+**Domain Model Testing**:
+```swift
+// Test rich domain models without any infrastructure
+@Test("Appointment business rules")
+func testAppointmentBusinessRules() {
+    let appointment = Appointment(
+        timeSlot: TimeSlot(start: Date(), duration: .minutes(30))
+    )
+    
+    let newSlot = TimeSlot(start: Date().addingTimeInterval(3600), duration: .minutes(30))
+    #expect(appointment.canReschedule(to: newSlot) == true)
+}
+```
+
 **Performance Testing Strategy**:
 - **Scheduling Algorithm Benchmarks**: Ensure <1 second optimization time per PRD
 - **UI Responsiveness**: Validate 40% GPU improvement claims in real usage scenarios
@@ -1098,6 +1695,64 @@ final class ScheduleSlot {
     }
 }
 ```
+
+## Modular Architecture Benefits
+
+### Development Benefits
+
+**Independent Development & Testing**:
+- Teams can work on different modules simultaneously without conflicts
+- Each module can be developed, tested, and deployed independently
+- Mocking module interfaces enables comprehensive unit testing
+- Reduced cognitive load - developers focus on one bounded context at a time
+
+**Clear Boundaries & Contracts**:
+- Public interfaces define explicit contracts between modules
+- Internal implementation changes don't affect other modules
+- DTOs prevent leaking internal models across boundaries
+- Easy to understand module responsibilities and dependencies
+
+### Maintenance Benefits
+
+**Isolated Changes**:
+- Bug fixes remain contained within module boundaries
+- Feature additions don't require understanding entire codebase
+- Refactoring internal implementation is safe and straightforward
+- Technology updates can be done module by module
+
+**Enhanced Testability**:
+- Domain logic tested without infrastructure dependencies
+- Module integration tests validate inter-module contracts
+- Performance testing can isolate bottlenecks to specific modules
+- Regression testing focused on affected modules only
+
+### Scalability Benefits
+
+**Team Scalability**:
+- New developers onboard faster by focusing on specific modules
+- Module ownership can be assigned to specific teams
+- Parallel development without stepping on each other's toes
+- Clear code review boundaries
+
+**Feature Scalability**:
+- New features implemented as new modules
+- Existing modules extended through well-defined interfaces
+- Easy to experiment with alternative implementations
+- Gradual migration paths for legacy code
+
+### Architecture Benefits
+
+**Clean Separation of Concerns**:
+- Business logic isolated from technical infrastructure
+- UI changes don't affect business rules
+- Data persistence changes don't impact domain models
+- External service integrations contained in infrastructure layer
+
+**Flexibility & Adaptability**:
+- Easy to swap implementations (e.g., different persistence strategies)
+- Support for different UI paradigms per module if needed
+- Gradual adoption of new technologies
+- Clear deprecation paths for old modules
 
 ## Next Steps
 
