@@ -176,6 +176,8 @@ This is a greenfield iOS project with comprehensive architecture documentation a
   - `SWIFT_APPROACHABLE_CONCURRENCY`: true
   - `SWIFT_DEFAULT_ACTOR_ISOLATION`: "MainActor"
   - `SWIFT_STRICT_CONCURRENCY`: "Complete"
+
+**Important**: With `SWIFT_DEFAULT_ACTOR_ISOLATION: "MainActor"`, most classes are implicitly MainActor-isolated, eliminating the need for explicit `@MainActor` annotations in most UI code. Use `nonisolated` when opting out for background operations.
 ```
 
 ## QuickForm Implementation Guidelines

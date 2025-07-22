@@ -77,8 +77,20 @@ Related documents: [00-overview.md](00-overview.md) | [07-ios26-specifications.m
 **Factory (2.3+)**:
 ```swift
 // Service registration and dependency injection
-container.register(SchedulingService.self) { 
-    DefaultSchedulingService(repository: container.resolve()) 
+import FactoryKit
+
+extension Container {
+    // Cached service - reused within container lifecycle
+    var schedulingService: Factory<SchedulingOptimizationService> {
+        self { DefaultSchedulingService(repository: self.appointmentRepository()) }
+            .cached
+    }
+    
+    // Repository with dependencies
+    var appointmentRepository: Factory<AppointmentRepository> {
+        self { SwiftDataAppointmentRepository(modelContext: self.modelContext()) }
+            .cached
+    }
 }
 ```
 
@@ -115,11 +127,21 @@ final class PatientFormViewModel: Validatable {
 ```swift
 // Complex scheduling interface state management
 @Observable
-final class SchedulingState {
+class SchedulingState {
+    @ObservationIgnored
+    @Injected(\.schedulingService) private var schedulingService
+    
     var selectedDate: Date = Date()
     var availableSlots: [TimeSlot] = []
     var selectedSpecialist: Specialist?
     var optimizationInProgress: Bool = false
+    
+    func loadAvailableSlots() async {
+        optimizationInProgress = true
+        defer { optimizationInProgress = false }
+        
+        availableSlots = await schedulingService.getAvailableSlots(for: selectedDate)
+    }
 }
 ```
 

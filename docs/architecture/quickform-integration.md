@@ -80,6 +80,8 @@ Comprehensive validation with:
 **Use Case**: Capturing and editing patient demographics, medical history, and contact information.
 
 ```swift
+import QuickForm
+
 @QuickForm(Patient.self)
 class PatientEditModel: Validatable {
     @PropertyEditor(keyPath: \Patient.name)
@@ -132,11 +134,24 @@ class PatientEditModel: Validatable {
 }
 ```
 
+**FactoryKit Registration**:
+
+```swift
+import FactoryKit
+
+extension Container {
+    var patientEditViewModel: Factory<PatientEditModel> {
+        self { PatientEditModel() }
+            .cached
+    }
+}
+```
+
 **SwiftUI Integration**:
 
 ```swift
 struct PatientEditView: View {
-    @StateObject private var model = PatientEditModel()
+    @InjectedObject(\.patientEditViewModel) private var model
     
     var body: some View {
         NavigationView {

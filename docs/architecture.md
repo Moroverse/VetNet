@@ -235,7 +235,7 @@ The Application layer serves as the composition root that wires modules together
 
 ```swift
 // App/Sources/CompositionRoot/AppContainer.swift
-@MainActor
+// Note: With SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor, @MainActor annotation is implicit
 final class AppContainer {
     // Infrastructure services
     private let persistenceProvider: PersistenceProvider
@@ -1288,7 +1288,7 @@ final class VeterinaryDataProtection {
 **Scheduling Algorithm Performance**:
 ```swift
 // Performance-optimized scheduling using iOS 26 capabilities
-@MainActor
+// Note: With SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor, @MainActor annotation is implicit
 final class OptimizedSchedulingEngine {
     @Observable
     private var performanceMetrics = PerformanceMetrics()

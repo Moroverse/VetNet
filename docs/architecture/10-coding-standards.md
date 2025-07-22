@@ -6,6 +6,68 @@ This document establishes the coding standards and development guidelines for Ve
 
 Related documents: [02-tech-stack.md](02-tech-stack.md) | [01-modular-design.md](01-modular-design.md) | [07-ios26-specifications.md](07-ios26-specifications.md)
 
+## Swift 6.2+ Concurrency Configuration
+
+### Default MainActor Isolation
+
+**Project Configuration**: VetNet uses Swift 6.2+ with default MainActor isolation configured in Tuist build settings:
+
+```swift
+// Tuist Project.swift build settings (applied project-wide):
+"SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor"
+```
+
+**Impact**: With this configuration, all classes and their methods are implicitly MainActor-isolated unless explicitly opted out. This means:
+
+✅ **No @MainActor needed**: Most UI-related classes don't need explicit @MainActor annotations
+✅ **Automatic UI thread safety**: ViewModels, UI services automatically run on main thread
+✅ **Simplified concurrency**: Reduced boilerplate for SwiftUI integration
+
+**When to use explicit @MainActor**:
+- When documenting critical UI boundary classes for clarity
+- When working with generic types that need explicit isolation
+- When creating protocol conformances that must be MainActor-isolated
+
+**When to opt out with nonisolated**:
+```swift
+final class NetworkService {
+    // This method opts out of MainActor isolation for background work
+    nonisolated func fetchData() async throws -> Data {
+        // Network operations should not block main thread
+    }
+}
+```
+
+### Structured Concurrency Patterns
+
+**Rule**: All async operations must use Swift 6.2+ structured concurrency patterns
+
+```swift
+// Correct: TaskGroup for parallel operations
+func optimizeAllSpecialistSchedules() async -> [ScheduleOptimization] {
+    await withTaskGroup(of: ScheduleOptimization.self) { group in
+        for specialist in specialists {
+            group.addTask {
+                await optimizeIndividualSchedule(specialist)
+            }
+        }
+        
+        var results: [ScheduleOptimization] = []
+        for await result in group {
+            results.append(result)
+        }
+        return results
+    }
+}
+
+// Incorrect: Unstructured concurrency
+func badOptimization() {
+    Task {
+        // Avoid unstructured tasks for business logic
+    }
+}
+```
+
 ## Critical Architecture Rules
 
 ### SwiftData + CloudKit Integration Rule
@@ -243,7 +305,7 @@ final class SchedulingViewModel {
         }
     }
     
-    @MainActor
+    // Note: With SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor, methods are implicitly MainActor-isolated
     private func loadAppointments(for date: Date) async {
         isLoading = true
         defer { isLoading = false }
