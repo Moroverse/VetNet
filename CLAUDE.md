@@ -156,3 +156,16 @@ Each sharded document maintains context while being focused for specific concern
 - Tuist 4.55.6 (via mise)
 
 This is a greenfield iOS project with comprehensive architecture documentation and a custom navigation solution optimized for veterinary workflows.
+
+## Tuist Configuration Notes
+
+### Project-wide Swift Concurrency Extensions
+- All projects in tuist should have following extensions in infoList:
+  - `SWIFT_APPROACHABLE_CONCURRENCY`: true
+  - `SWIFT_DEFAULT_ACTOR_ISOLATION`: "MainActor"
+  - `SWIFT_STRICT_CONCURRENCY`: "Complete"
+```
+
+## QuickForm Implementation Guidelines
+
+- When working with QuicForm you should always consult @docs/architecture/quickform-patterns.mdc for best approaches to the implementation

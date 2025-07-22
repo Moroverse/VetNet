@@ -1,0 +1,562 @@
+# QuickForm Integration Patterns
+
+## Overview
+
+QuickForm is a powerful Swift macro-based form library that eliminates boilerplate code and provides type-safe form handling. This guide documents patterns discovered during PatientFormViewModel implementation.
+
+## Core Architecture Pattern
+
+### 1. Component Struct Pattern
+
+**Best Practice**: Separate form data from domain models using a dedicated components struct.
+
+```swift
+// ✅ Good: Separate form components
+struct PatientComponents {
+    var name: String = ""
+    var species: Species = .dog
+    var birthDate: Date = .now
+    var weight: Measurement<UnitMass> = .init(value: 0, unit: .kilograms)
+}
+
+@QuickForm(PatientComponents.self)
+final class PatientFormViewModel: Validatable {
+    // Form implementation
+}
+
+// ✅ Domain model remains pure
+struct Patient: Sendable, Identifiable {
+    let id: ID
+    var name: String
+    var species: Species
+    var birthDate: Date
+    var weight: Measurement<UnitMass>
+}
+```
+
+**Benefits**:
+- Clean separation between form state and domain entities
+- QuickForm works with value types while domain models remain pure
+- Easier testing and validation
+- Clear data flow: Components → Validation → Domain Model
+
+### 2. Core Macro Usage
+
+```swift
+@QuickForm(ComponentType.self)
+final class FormViewModel: Validatable {
+    @Dependency
+    private let businessLogic: BusinessLogicType
+    
+    @PropertyEditor(keyPath: \ComponentType.field)
+    var field = FormFieldViewModel(...)
+    
+    @PostInit
+    private func configure() {
+        // Setup validation and change tracking
+    }
+}
+```
+
+## Field Type Patterns
+
+### String Fields
+
+```swift
+@PropertyEditor(keyPath: \PatientComponents.name)
+var name = FormFieldViewModel(
+    type: String.self,
+    title: "Patient Name",
+    placeholder: "Enter patient name"
+)
+```
+
+### Enum Picker Fields
+
+**Requirement**: Enum must conform to `CaseIterable` and `CustomStringConvertible`
+
+```swift
+enum Species: String, CaseIterable, Sendable, CustomStringConvertible {
+    case dog, cat, bird, other
+    
+    var description: String {
+        switch self {
+        case .dog: "Dog"
+        case .cat: "Cat"
+        case .bird: "Bird"  
+        case .other: "Other"
+        }
+    }
+}
+
+@PropertyEditor(keyPath: \PatientComponents.species)
+var species = PickerFieldViewModel(
+    value: Species.dog,
+    allValues: Species.allCases,
+    title: "Species"
+)
+```
+
+### Date Fields
+
+```swift
+@PropertyEditor(keyPath: \PatientComponents.birthDate)
+var birthDate = FormFieldViewModel(
+    value: Date(),
+    title: "Birth Date"
+)
+```
+
+### Measurement Fields
+
+```swift
+@PropertyEditor(keyPath: \PatientComponents.weight)
+var weight = FormFieldViewModel(
+    value: Measurement(value: 0, unit: UnitMass.kilograms),
+    title: "Weight (kg)",
+    placeholder: "0.0"
+)
+```
+
+## Validation Patterns
+
+### 1. Basic Validation Setup
+
+```swift
+@PostInit
+private func configure() {
+    name.validation = validator.nameValidation
+    birthDate.validation = validator.birthdayValidation
+    weight.validation = validator.weightValidation(for: species.value)
+}
+```
+
+### 2. Dynamic Validation (Field Dependencies)
+
+**Pattern**: Update validation rules when dependent fields change
+
+```swift
+species.onValueChanged { [weak self] newValue in
+    guard let self else { return }
+    // Update weight validation based on species
+    weight.validation = validator.weightValidation(for: newValue)
+    hasUnsavedChanges = true
+}
+```
+
+### 3. Custom ValidationRule Implementation
+
+```swift
+struct SpeciesMaxWeightRangeRule: ValidationRule {
+    let species: Species
+    
+    init(_ species: Species) {
+        self.species = species
+    }
+    
+    func validate(_ value: Measurement<UnitMass>) -> ValidationResult {
+        let weightInKg = value.converted(to: .kilograms).value
+        
+        switch species {
+        case .dog:
+            if weightInKg >= 0.5, weightInKg <= 100 {
+                return .success
+            } else {
+                return .failure("Dogs must weigh between 0.5kg and 100kg")
+            }
+        // ... other cases
+        }
+    }
+}
+```
+
+### 4. Combined Validation Rules
+
+```swift
+var nameValidation: AnyValidationRule<String> {
+    .combined(
+        .notEmpty,
+        .minLength(2),
+        .maxLength(50),
+        AllowedCharactersRule(.letters.union(.whitespaces).union(.init(charactersIn: "-")))
+    )
+}
+```
+
+### 5. Date Validation with Dependencies
+
+```swift
+struct MaxDateRule: ValidationRule {
+    let dateProvider: DateProvider
+    
+    func validate(_ value: Date) -> ValidationResult {
+        if value > dateProvider.now() {
+            .failure("Date must be before \(dateProvider.now().formatted())")
+        } else {
+            .success
+        }
+    }
+}
+
+struct MaxDateRangeRule: ValidationRule {
+    let dateProvider: DateProvider
+    let range: DateComponents
+    
+    func validate(_ value: Date) -> ValidationResult {
+        guard let minDate = dateProvider.calendar.date(byAdding: range, to: dateProvider.now()) else {
+            return .failure("Invalid date range")
+        }
+        
+        let result = dateProvider.calendar.compare(value, to: minDate, toGranularity: .second)
+        switch result {
+        case .orderedDescending, .orderedSame:
+            return .success
+        case .orderedAscending:
+            return .failure("Date must be after \(minDate.formatted())")
+        }
+    }
+}
+```
+
+## State Management Pattern
+
+### FormState Enum Pattern
+
+**Best Practice**: Use a single enum for form state instead of scattered boolean properties.
+
+```swift
+enum FormState: Equatable {
+    case idle           // Initial state, no changes
+    case editing        // User has made unsaved changes
+    case saving         // Save operation in progress
+    case saved          // Successfully saved
+    case error(String)  // Save failed with error message
+    case validationError(String) // Form validation failed
+}
+```
+
+**Benefits**:
+- Single source of truth for form state
+- Prevents impossible state combinations (e.g., saving + error)
+- Cleaner testing with single property assertions
+- Type-safe state transitions
+
+### Change Tracking with FormState
+
+```swift
+@PostInit
+private func configure() {
+    // Setup validation and change tracking
+    name.validation = patientManager.validator.nameValidation
+    birthDate.validation = patientManager.validator.birthdayValidation
+    weight.validation = patientManager.validator.weightValidation(for: species.value)
+    
+    // Dynamic validation updates
+    species.onValueChanged { [weak self] newValue in
+        guard let self else { return }
+        weight.validation = patientManager.validator.weightValidation(for: newValue)
+        formState = .editing
+    }
+    
+    // Change tracking for all fields
+    name.onValueChanged { [weak self] _ in
+        guard let self else { return }
+        formState = .editing
+    }
+    
+    birthDate.onValueChanged { [weak self] _ in
+        guard let self else { return }
+        formState = .editing
+    }
+    
+    weight.onValueChanged { [weak self] _ in
+        guard let self else { return }
+        formState = .editing
+    }
+}
+
+private(set) var formState: FormState = .idle
+```
+
+## Testing Patterns
+
+### 1. Test Setup (SUT Pattern)
+
+**Best Practice**: Use System Under Test (SUT) pattern for cleaner test organization.
+
+```swift
+@Suite("Patient Form ViewModel Tests")
+struct PatientFormViewModelTests {
+    // MARK: - Test Helpers
+    
+    func makeSUT() -> PatientFormViewModel {
+        let patientComponents = PatientComponents()
+        return PatientFormViewModel(value: patientComponents)
+    }
+    
+    func setValidData(on sut: PatientFormViewModel) {
+        sut.name.value = "Buddy"
+        sut.species.value = .dog
+        sut.birthDate.value = Calendar.current.date(byAdding: .year, value: -2, to: Date())!
+        sut.weight.value = Measurement(value: 15.5, unit: UnitMass.kilograms)
+    }
+    
+    @Test("Description")
+    func testName() {
+        // Given
+        let sut = makeSUT()
+        
+        // When & Then
+    }
+}
+
+### 2. Field Value Testing
+
+```swift
+// Test field access
+#expect(viewModel.name.value == "")
+#expect(viewModel.species.value == .dog)
+#expect(viewModel.weight.value.value == 0)
+#expect(viewModel.weight.value.unit == UnitMass.kilograms)
+```
+
+### 3. FormState Testing
+
+```swift
+// When
+sut.name.value = "Buddy"
+
+// Then  
+#expect(sut.formState == .editing)
+```
+
+### 4. Validation Testing
+
+```swift
+// When
+let validationResult = viewModel.validate()
+
+// Then
+switch validationResult {
+case .success:
+    Issue.record("Validation should have failed")
+case var .failure(message):
+    message.locale = .init(identifier: "en_US_POSIX")
+    let localized = String(localized: message)
+    #expect(localized.contains("expected error text"))
+}
+```
+
+## Dependency Injection Integration
+
+### With Factory DI (@Injected Pattern)
+
+**Best Practice**: Use `@Injected` with Factory DI for clean dependency management.
+
+```swift
+@QuickForm(PatientComponents.self)
+final class PatientFormViewModel: Validatable {
+    @Injected(\.patientManager)
+    private var patientManager
+    
+    // QuickForm macro handles initialization automatically
+}
+```
+
+**Factory Registration**:
+```swift
+extension Container {
+    var patientManager: Factory<PatientManager> {
+        self { PatientManager(dateProvider: self.dateProvider(), patientService: self.patientService()) }
+            .singleton
+    }
+}
+```
+
+### Manual Injection (Constructor)
+
+```swift
+init(value: PatientComponents, patientManager: PatientManager) {
+    self.patientManager = patientManager
+    // QuickForm macro will generate required initialization
+}
+```
+
+## Best Practices
+
+### ✅ Do
+
+1. **Use component structs** to separate form data from domain models
+2. **Use FormState enum** for single source of truth state management
+3. **Setup validation in @PostInit** for proper lifecycle management
+4. **Use weak self** in change tracking callbacks to prevent retain cycles
+5. **Implement custom ValidationRule** for complex business logic
+6. **Test field values** using `.value` accessor pattern
+7. **Use SUT pattern** for cleaner test organization
+8. **Leverage @Injected** with Factory DI for dependency management
+9. **Leverage enum conformances** (CaseIterable, CustomStringConvertible) for pickers
+
+### ❌ Don't
+
+1. **Don't mix form state with domain models** - keep them separate
+2. **Don't use scattered boolean properties** - use FormState enum instead
+3. **Don't forget weak self** in callbacks - causes memory leaks
+4. **Don't skip @PostInit** - validation won't be properly configured
+5. **Don't hardcode validation** - use injected business logic
+6. **Don't ignore state transitions** - users expect proper loading/error states
+
+## Performance Considerations
+
+1. **Dynamic validation updates** are efficient - QuickForm handles re-validation automatically
+2. **Field dependencies** (species → weight validation) perform well with proper weak references
+3. **Validation rules** are evaluated lazily - only when `.validate()` is called
+4. **Change tracking** has minimal overhead with proper callback management
+
+## SwiftUI Integration
+
+QuickForm works seamlessly with SwiftUI form components:
+
+```swift
+struct PatientFormView: View {
+    @Bindable private var viewModel: PatientFormViewModel
+    
+    init(viewModel: PatientFormViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    var body: some View {
+        Form {
+            Section("Basic Information") {
+                FormTextField(viewModel.name)
+                FormPickerField(viewModel.species)
+                FormDatePickerField(
+                    viewModel.birthDate,
+                    range: viewModel.birthDateRange,
+                    style: .compact
+                )
+                FormValueDimensionField(viewModel.weight)
+            }
+        }
+        .navigationTitle("New Patient")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Cancel") {
+                    // Handle cancel action
+                }
+                .disabled(viewModel.formState == .saving)
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    Task {
+                        await viewModel.save()
+                    }
+                }
+                .disabled(!canSave)
+            }
+        }
+    }
+    
+    private var canSave: Bool {
+        switch viewModel.formState {
+        case .saving:
+            false
+        case .idle, .editing, .saved, .error, .validationError:
+            viewModel.validate() == .success
+        }
+    }
+}
+```
+
+### Save Operation Pattern
+
+```swift
+@MainActor
+func save() async {
+    // Start saving state
+    formState = .saving
+    
+    // Validate form first
+    let validationResult = validate()
+    switch validationResult {
+    case .success:
+        break // Continue with save
+    case let .failure(message):
+        formState = .validationError(String(localized: message))
+        return
+    }
+    
+    do {
+        // Create domain object from form values
+        let createRequest = CreatePatientRequest(
+            name: name.value,
+            species: species.value,
+            birthDate: birthDate.value,
+            weight: weight.value
+        )
+        
+        // Save via business logic layer
+        _ = try await patientManager.createPatient(from: createRequest)
+        
+        // Set saved state on successful save
+        formState = .saved
+    } catch {
+        formState = .error(error.localizedDescription)
+    }
+}
+```
+
+## Preview Patterns with Factory
+
+For demonstrating different states in SwiftUI previews, use Factory's `.preview` registration:
+
+```swift
+static var previews: some View {
+    // Other previews...
+    
+    NavigationStack {
+        // Register mock service BEFORE view creation
+        Container.shared.patientService.preview {
+            NeverCompletingPatientService()
+        }
+        SavingStatePreview()
+    }
+    .previewDisplayName("Saving State")
+}
+
+struct SavingStatePreview: View {
+    @State var viewModel = PatientFormViewModel(
+        value: PatientComponents(
+            name: "Luna", 
+            species: .cat, 
+            birthDate: Calendar.current.date(byAdding: .year, value: -1, to: Date()) ?? Date(), 
+            weight: Measurement(value: 4.2, unit: .kilograms)
+        )
+    )
+
+    var body: some View {
+        PatientFormView(viewModel: viewModel)
+            .task {
+                await viewModel.save()
+            }
+    }
+}
+
+// Mock service that never completes to show saving state
+private struct NeverCompletingPatientService: PatientServiceProtocol {
+    func createPatient(_ patient: Patient) async throws -> Patient {
+        try await Task.sleep(nanoseconds: UInt64.max)
+        return patient
+    }
+}
+```
+
+**Benefits**:
+- **Proper timing**: Mock registration happens before view model creation
+- **Preview isolation**: `.preview` is designed specifically for SwiftUI previews
+- **Clean initialization**: Pre-populate PatientComponents with valid data
+- **Concise**: Use `.task` modifier instead of `.onAppear` complexity
+- **No state exposure**: FormState remains properly encapsulated
+
+This documentation reflects patterns discovered in the PatientFormViewModel implementation and serves as a reference for future QuickForm usage across the project.

@@ -1,5 +1,5 @@
 {
-  "originHash" : "802c27af9a3dc49d5d4d8812f0e6d935369ffb5f35e99a207a00cf4c58930314",
+  "originHash" : "639711b5abe0ac8d1365e0fe0190fbdb025f88cc7140a1498ec505d98aa1b8c5",
   "pins" : [
     {
       "identity" : "factory",
@@ -17,6 +17,42 @@
       "state" : {
         "revision" : "ee133a696dce312da292b00d0944aafaa808eaca",
         "version" : "0.4.0"
+      }
+    },
+    {
+      "identity" : "quick-form",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Moroverse/quick-form",
+      "state" : {
+        "revision" : "517e4c41a6b8c6d52c3c88082bdf72d21a732cef",
+        "version" : "0.1.2"
+      }
+    },
+    {
+      "identity" : "state-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Moroverse/state-kit",
+      "state" : {
+        "revision" : "44c17f57a0f782e57936635635b939eb907cc74e",
+        "version" : "0.6.1"
+      }
+    },
+    {
+      "identity" : "swift-clocks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-clocks.git",
+      "state" : {
+        "revision" : "cc46202b53476d64e824e0b6612da09d84ffde8e",
+        "version" : "1.0.6"
+      }
+    },
+    {
+      "identity" : "swift-concurrency-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+      "state" : {
+        "revision" : "82a4ae7170d98d8538ec77238b7eb8e7199ef2e8",
+        "version" : "1.3.1"
       }
     },
     {
