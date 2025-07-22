@@ -17,7 +17,10 @@ let project = Project(
                     "CFBundleDisplayName": "VetNet",
                     "NSAppTransportSecurity": [
                         "NSAllowsArbitraryLoads": true
-                    ]
+                    ],
+                    "SWIFT_APPROACHABLE_CONCURRENCY": true,
+                    "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
+                    "SWIFT_STRICT_CONCURRENCY": "Complete"
                 ]
             ),
             sources: ["App/Sources/**"],
