@@ -1,15 +1,11 @@
- import ProjectDescription
+// Project.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-21 18:27 GMT.
+
+import ProjectDescription
 
 let project = Project(
     name: "VetNet",
-    settings: .settings(
-        base: [
-            "SWIFT_VERSION": "6.2",
-            "IPHONEOS_DEPLOYMENT_TARGET": "26.0",
-            "MACOSX_DEPLOYMENT_TARGET": "26.0",
-            "TARGETED_DEVICE_FAMILY": "1,2"
-        ]
-    ),
     targets: [
         .target(
             name: "VetNet",
@@ -21,7 +17,7 @@ let project = Project(
                 with: [
                     "UILaunchScreen": [
                         "UIColorName": "",
-                        "UIImageName": "",
+                        "UIImageName": ""
                     ],
                     "CFBundleDisplayName": "VetNet",
                     "NSAppTransportSecurity": [
@@ -44,67 +40,21 @@ let project = Project(
                 .external(name: "SwiftUIRouting"),
                 .external(name: "Mockable"),
                 .external(name: "QuickForm"),
-                .external(name: "StateKit"),
-                .target(name: "PatientRecords")
+                .external(name: "StateKit")
             ],
-            settings: .settings(
-                configurations: [
-                    .debug(
-                        name: "Debug",
-                        settings: [
-                            "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING",
-                            "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                            "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
-                            "SWIFT_STRICT_CONCURRENCY": "Complete"
-                        ]
-                    ),
-                    .release(
-                        name: "Release",
-                        settings: [
-                            "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                            "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
-                            "SWIFT_STRICT_CONCURRENCY": "Complete"
-                        ]
-                    )
-                ]
+            settings:
+            .settings(base: [
+                "SWIFT_APPROACHABLE_CONCURRENCY": true,
+                "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
+                "SWIFT_STRICT_CONCURRENCY": "Complete"
+            ], configurations: [
+                .debug(
+                    name: "Debug",
+                    settings: [
+                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING"
+                    ]
                 )
-        ),
-        .target(
-            name: "PatientRecords",
-            destinations: [.iPad, .iPhone, .mac],
-            product: .framework,
-            bundleId: "com.moroverse.VetNet.PatientRecords",
-            deploymentTargets: .iOS("26.0"),
-            infoPlist: .default,
-            sources: ["Features/PatientRecords/**"],
-            dependencies: [
-                .external(name: "FactoryKit"),
-                .external(name: "SwiftUIRouting"),
-                .external(name: "QuickForm"),
-                .external(name: "StateKit"),
-                .external(name: "Mockable")
-            ],
-            settings: .settings(
-                configurations: [
-                    .debug(
-                        name: "Debug",
-                        settings: [
-                            "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING",
-                            "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                            "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
-                            "SWIFT_STRICT_CONCURRENCY": "Complete"
-                        ]
-                    ),
-                    .release(
-                        name: "Release",
-                        settings: [
-                            "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                            "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
-                            "SWIFT_STRICT_CONCURRENCY": "Complete"
-                        ]
-                    )
-                ]
-                )
+            ])
         ),
         .target(
             name: "VetNetTests",
@@ -116,10 +66,9 @@ let project = Project(
             resources: [],
             dependencies: [
                 .target(name: "VetNet"),
-                .target(name: "PatientRecords"),
                 .external(name: "Mockable"),
                 .external(name: "ViewInspector")
             ]
-        ),
+        )
     ]
 )
