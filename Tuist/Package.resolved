@@ -1,5 +1,5 @@
 {
-  "originHash" : "6348b5ec55dabe1a23c7a47bcce611fe9c747b4fd48c7f8f82b8c4b4e36cd164",
+  "originHash" : "62245a9b1eca3d4dc42b9b33917db7fcc594753dfb80e25c2e8486b776fb40fe",
   "pins" : [
     {
       "identity" : "factory",
@@ -56,12 +56,30 @@
       }
     },
     {
+      "identity" : "swift-custom-dump",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/swift-custom-dump.git",
+      "state" : {
+        "revision" : "82645ec760917961cfa08c9c0c7104a57a0fa4b1",
+        "version" : "1.3.3"
+      }
+    },
+    {
       "identity" : "swift-syntax",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax.git",
       "state" : {
         "revision" : "f99ae8aa18f0cf0d53481901f88a0991dc3bd4a2",
         "version" : "601.0.1"
+      }
+    },
+    {
+      "identity" : "test-kit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Moroverse/test-kit.git",
+      "state" : {
+        "revision" : "740896eb6b863e0580a75c0e2ebc17b83c6f4bad",
+        "version" : "0.3.10"
       }
     },
     {

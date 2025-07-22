@@ -68,7 +68,8 @@ let project = Project(
                 .target(name: "VetNet"),
                 .external(name: "Mockable"),
                 .external(name: "ViewInspector"),
-                .external(name: "FactoryTesting")
+                .external(name: "FactoryTesting"),
+                .external(name: "TestKit")
             ]
         )
     ]

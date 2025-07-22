@@ -62,6 +62,9 @@ cd Modules/SwiftUIRouting && swift test
 - **Navigation**: Custom SwiftUIRouting module (bidirectional, type-safe routing)
 - **Data**: SwiftData with CloudKit for HIPAA-compliant synchronization
 - **Testing**: Swift Testing + Mockable + ViewInspector for comprehensive coverage
+- **Dependency Injection**: FactoryKit for clean, testable service layer
+- **Formatting**: FormatStyle API for consistent, locale-aware formatting
+- **Measurements**: Type-safe Measurement API for veterinary calculations
 
 ### Key Architectural Decisions
 
@@ -178,3 +181,10 @@ This is a greenfield iOS project with comprehensive architecture documentation a
 ## QuickForm Implementation Guidelines
 
 - When working with QuickForm you should always consult @docs/architecture/quickform-patterns.mdc for best approaches to the implementation
+
+## Swift Best Practices
+
+- **Dependency Injection**: Use FactoryKit patterns documented in @docs/architecture/swift-best-practices.md
+- **Formatting**: Prefer FormatStyle API for all formatting needs (dates, measurements, currency)
+- **Measurements**: Use Swift's Measurement API with proper units for all veterinary calculations
+- See @docs/architecture/swift-best-practices.md for comprehensive patterns and examples
