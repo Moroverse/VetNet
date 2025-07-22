@@ -48,27 +48,34 @@ This epic establishes the core data foundation for the entire application. By im
    - Loading states during save
    - Success confirmation
 
-2. **Business Layer**
-   - Patient domain model with:
-     - Validation rules for all fields
-     - Age calculation from birth date
-     - Species-specific breed validation
+2. **Domain Layer**
+   - Pure Patient domain model in `Features/PatientManagement/Domain/Models/`:
+     - No persistence or framework dependencies
+     - Rich business logic methods (age calculation, validation)
+     - Species-specific breed validation rules
      - Medical ID generation algorithm
-     - Data transformation for persistence
    - Business rules enforcement:
      - Future birth dates not allowed
      - Weight within species ranges
      - Owner relationship validation
+   - Repository interface in `Features/PatientManagement/Domain/Repositories/`:
+     - `PatientRepository` protocol defining persistence operations
+     - Domain-centric method signatures
+     - Enables testing with mock implementations
 
-3. **Data Layer**
-   - SwiftData Patient entity with:
-     - CloudKit synchronization
-     - Compound uniqueness constraints
-     - Automatic timestamps
-     - Soft delete support
+3. **Infrastructure Layer** 
+   - SwiftData PatientEntity in `Infrastructure/Persistence/Entities/`:
+     - `@Model` macro with CloudKit synchronization
+     - Compound uniqueness constraints via `@Attribute(.unique)`
+     - Automatic timestamps and soft delete support
+     - Optimized for storage and sync performance
+   - Repository implementation in `Infrastructure/Repositories/`:
+     - `SwiftDataPatientRepository` implementing domain protocol
+     - Maps between domain models and SwiftData entities  
+     - Handles all persistence and CloudKit concerns
    - Relationships:
      - Owner (many-to-one)
-     - Appointments (one-to-many)
+     - Appointments (one-to-many)  
      - Medical records (one-to-many)
 
 4. **Infrastructure**
@@ -82,14 +89,19 @@ This epic establishes the core data foundation for the entire application. By im
      - Git repository setup
      - CI/CD pipeline foundation
 
-5. **Mock Services**
-   - In-memory patient service with:
-     - CRUD operations
-     - Search functionality
-     - Validation logic
-     - Error simulation
-   - Service protocol definition
-   - Mockable integration
+5. **Testing Infrastructure**
+   - Mock repository implementations for domain testing:
+     - `MockPatientRepository` implementing `PatientRepository` protocol
+     - In-memory storage for isolated domain logic testing
+     - Configurable success/failure scenarios
+   - Domain model unit tests:
+     - Business rule validation (90%+ coverage)
+     - Edge case handling
+     - No persistence dependencies
+   - Repository integration tests:
+     - Entity-to-domain mapping validation
+     - SwiftData constraint verification
+     - CloudKit synchronization testing
 
 6. **Sample Data**
    - Pre-populated database with 20+ patients:

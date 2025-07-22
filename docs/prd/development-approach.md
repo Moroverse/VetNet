@@ -73,10 +73,11 @@ Based on core user workflows, the following epics deliver incremental value whil
 Each story must include:
 - **User-facing value**: Clear benefit statement
 - **Acceptance criteria**: Measurable completion
-- **UI components**: Interface elements
-- **Business logic**: Core functionality
-- **Data layer**: Persistence requirements
-- **Testing requirements**: Coverage expectations
+- **UI components**: SwiftUI views and ViewModels
+- **Domain logic**: Pure business rules and operations
+- **Repository interface**: Domain-defined persistence contracts
+- **Infrastructure implementation**: SwiftData entity mapping
+- **Testing requirements**: Domain, repository, and integration coverage
 - **Feature flag**: Toggle configuration
 
 ### Story Sizing
@@ -118,13 +119,14 @@ A story is complete when:
 - Tests comprehensive
 
 ### Testing Strategy
-- **Unit tests**: Business logic coverage
-- **Integration tests**: API contracts
-- **UI tests**: Critical user flows
-- **Performance tests**: Key metrics
-- **Security tests**: Vulnerability scanning
-- **Accessibility tests**: Compliance verification
-- **Manual testing**: Edge cases
+- **Domain Unit Tests**: Pure business logic testing without persistence dependencies
+- **Repository Tests**: Mock implementations for domain layer testing  
+- **Integration Tests**: Repository-to-SwiftData entity mapping validation
+- **UI Tests**: Critical user flows with mocked repository interfaces
+- **Performance Tests**: SwiftData query optimization and constraints
+- **Security Tests**: Infrastructure layer HIPAA compliance verification
+- **Accessibility Tests**: iOS 26 compliance verification
+- **Manual Testing**: Cross-layer edge cases and user scenarios
 
 ## Feature Flag Implementation
 
@@ -154,10 +156,12 @@ A story is complete when:
 ## Quality Assurance
 
 ### Automated Quality Gates
-- Code coverage > 80%
-- No critical vulnerabilities
-- Performance benchmarks met
-- Accessibility compliance
+- **Domain layer coverage** > 90% (pure business logic)
+- **Repository interface coverage** > 85% (mocked implementations)
+- **Integration test coverage** > 70% (entity mapping validation)
+- No critical vulnerabilities in Infrastructure layer
+- Performance benchmarks met for SwiftData operations
+- Clean Architecture compliance (dependency direction validation)
 - Build time < 5 minutes
 - Zero linting errors
 

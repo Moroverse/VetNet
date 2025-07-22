@@ -65,8 +65,16 @@ cd Modules/SwiftUIRouting && swift test
 
 ### Key Architectural Decisions
 
-**SwiftData + CloudKit Integration**:
-- All data models use @Model macro with proper relationships
+**Domain-Driven Design with Clean Architecture**:
+- Pure domain models in each feature module's Domain layer (no persistence dependencies)
+- SwiftData `@Model` entities isolated in shared Infrastructure layer at Application level
+- Repository pattern provides clean abstraction between domain logic and persistence
+- DTOs for inter-module communication to maintain module boundaries
+
+**SwiftData in Infrastructure Layer**:
+- SwiftData entities located in `Infrastructure/Persistence/Entities/` (shared across all features)
+- Repository implementations in `Infrastructure/Repositories/` map between domain models and SwiftData entities
+- Domain layer defines repository protocols, Infrastructure layer provides SwiftData implementations
 - Compound uniqueness constraints (@Attribute(.unique)) prevent scheduling conflicts
 - Custom DataStore protocol for HIPAA compliance
 
@@ -120,7 +128,8 @@ protocol TriageService {
 
 | Element | Convention | Example |
 |---------|------------|---------|
-| Data Models | PascalCase descriptive | `VeterinarySpecialist`, `AppointmentSchedule` |
+| Domain Models | PascalCase descriptive | `Appointment`, `Patient` (in Domain layer) |
+| SwiftData Entities | PascalCase + 'Entity' | `AppointmentEntity`, `PatientEntity` (in Infrastructure layer) |
 | Service Protocols | PascalCase + 'Service' | `TriageAssessmentService`, `SchedulingOptimizationService` |
 | SwiftUI Views | PascalCase + 'View' | `GlassScheduleCalendarView`, `SpecialistMatchingView` |
 | State Properties | camelCase + @Observable | `@Observable var currentSchedulingState` |

@@ -102,12 +102,14 @@ This document outlines the technical assumptions, architecture decisions, and te
 ### Dependency Integration
 
 #### Dependency Injection
-**Factory** (https://github.com/hmlongco/Factory)
-- Clean architecture support
-- Compile-time safety
-- Testing flexibility
-- Scope management
-- Lazy initialization
+**FactoryKit** (https://github.com/hmlongco/Factory)
+
+- **Clean architecture support**: Repository pattern implementation
+- **Compile-time safety**: Type-safe repository interfaces
+- **Testing flexibility**: Mock repository implementations for domain testing
+- **Scope management**: Infrastructure layer service registration  
+- **Lazy initialization**: Repository instantiation on-demand
+- **Domain isolation**: Feature modules depend only on repository protocols
 
 #### Form Management
 **QuickForm** (https://github.com/Moroverse/quick-form)
@@ -141,6 +143,48 @@ This document outlines the technical assumptions, architecture decisions, and te
 - State restoration
 - Transition management
 
+### Repository Pattern Architecture
+
+#### Clean Architecture Implementation
+**Three-Layer Data Architecture**:
+1. **Domain Models**: Pure Swift objects in feature modules (`Features/*/Domain/Models/`)
+   - No persistence or framework dependencies
+   - Rich business logic and domain operations
+   - Testable in complete isolation
+
+2. **Repository Protocols**: Domain-defined interfaces (`Features/*/Domain/Repositories/`)
+   - Abstract persistence operations
+   - Domain-centric method signatures
+   - Enable mockable testing
+
+3. **SwiftData Entities**: Infrastructure layer persistence (`Infrastructure/Persistence/Entities/`)
+   - `@Model` entities with CloudKit integration
+   - Compound constraints and relationships
+   - Optimized for storage and synchronization
+
+#### Repository Implementation Pattern
+```swift
+// Domain Layer (Features/Scheduling/Domain/Repositories/)
+protocol AppointmentRepository {
+    func save(_ appointment: Appointment) async throws
+    func findById(_ id: AppointmentId) async throws -> Appointment?
+    func findConflicts(for appointment: Appointment) async throws -> [Appointment]
+}
+
+// Infrastructure Layer (Infrastructure/Repositories/)
+final class SwiftDataAppointmentRepository: AppointmentRepository {
+    // Maps between domain models and SwiftData entities
+    // Handles all persistence concerns
+    // Provides clean abstraction
+}
+```
+
+#### Benefits
+- **Testability**: Domain logic tested without persistence dependencies
+- **Clean Architecture**: Business rules isolated from technical concerns  
+- **SwiftData Power**: Advanced constraints, relationships, CloudKit sync
+- **Maintainability**: Changes to persistence don't affect business logic
+
 ### Backend Integration
 
 #### API Communication
@@ -152,13 +196,16 @@ This document outlines the technical assumptions, architecture decisions, and te
 - Progress tracking
 
 #### Data Persistence
-**SwiftData** with enhancements:
-- Custom DataStore protocol
-- Real-time synchronization
-- Compound uniqueness via #Unique
-- Query performance with #Index
-- Migration support
-- Conflict resolution
+**SwiftData with Repository Pattern Architecture**:
+- **Domain-Driven Design**: Pure domain models in feature modules' Domain layers
+- **Infrastructure Layer**: SwiftData `@Model` entities in shared `Infrastructure/Persistence/Entities/`
+- **Repository Pattern**: Clean abstraction between domain logic and persistence concerns
+- **Custom DataStore protocol**: HIPAA compliance at Infrastructure boundary
+- **Real-time synchronization**: CloudKit integration through Infrastructure layer
+- **Compound uniqueness**: Business rule enforcement via `@Attribute(.unique)`
+- **Query performance**: Optimized through repository implementations
+- **Migration support**: Handled at Infrastructure layer
+- **Conflict resolution**: Repository-managed with domain model mapping
 
 #### Authentication
 - Apple Sign-In integration

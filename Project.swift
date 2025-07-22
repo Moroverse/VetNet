@@ -67,7 +67,8 @@ let project = Project(
             dependencies: [
                 .target(name: "VetNet"),
                 .external(name: "Mockable"),
-                .external(name: "ViewInspector")
+                .external(name: "ViewInspector"),
+                .external(name: "FactoryTesting")
             ]
         )
     ]

@@ -269,12 +269,14 @@ final class VeterinaryDataProtection {
 - HIPAA compliance easier with native security APIs
 
 ### SwiftData vs Core Data
-**Decision**: SwiftData with custom DataStore
+**Decision**: SwiftData in Infrastructure layer with Repository pattern abstraction
 **Rationale**:
-- Modern Swift syntax reduces development complexity
-- Better CloudKit integration for multi-device synchronization
-- Custom DataStore enables HIPAA-specific security requirements
-- iOS 26 performance optimizations built-in
+- **Clean Architecture Maintained**: SwiftData entities isolated in Infrastructure layer, pure domain models in feature modules
+- **SwiftData Power Leveraged**: Complex constraints, relationships, and CloudKit sync capabilities
+- **Repository Pattern**: Clean abstraction between domain logic and persistence concerns
+- **Testability**: Domain logic tested without persistence dependencies, repository interfaces mocked
+- **HIPAA Compliance**: Custom DataStore protocol implemented at Infrastructure boundary
+- **iOS 26 Performance**: Native SwiftData optimizations and hardware acceleration
 
 ### QuickForm vs Manual Form Implementation
 **Decision**: QuickForm macro-driven forms

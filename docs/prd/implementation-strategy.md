@@ -191,10 +191,11 @@ A story is complete when:
 - Performance benchmarks met
 
 **Testing**
-- Unit test coverage > 80%
-- Integration tests passing
-- UI tests for critical paths
-- Manual testing complete
+- **Domain unit test coverage** > 90% (business logic isolation)
+- **Repository integration tests** passing (entity mapping validation)
+- **Infrastructure layer tests** > 80% (SwiftData operations)
+- **UI tests** for critical paths with mocked repositories
+- **Manual testing** complete across all architectural layers
 
 **Documentation**
 - API documentation updated
@@ -292,10 +293,11 @@ Epic 5: Advanced Optimization (Depends on Epic 1-4)
 ### Quality Assurance Strategy
 
 #### Automated Testing
-- **Unit Tests**: Business logic validation
-- **Integration Tests**: API and data layer
-- **UI Tests**: Critical user journeys
-- **Performance Tests**: Load and stress testing
+- **Domain Unit Tests**: Pure business logic validation without persistence dependencies
+- **Repository Tests**: Mock implementations for domain layer isolation
+- **Integration Tests**: SwiftData entity mapping and repository contract validation
+- **UI Tests**: Critical user journeys with repository interface mocking
+- **Performance Tests**: SwiftData query optimization and Infrastructure layer load testing
 
 #### Manual Testing
 - **Exploratory Testing**: Edge case discovery

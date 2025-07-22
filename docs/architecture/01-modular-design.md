@@ -86,11 +86,6 @@ Features/Scheduling/                 # Example module
 │   │   │   └── RescheduleAppointmentUseCase.swift
 │   │   └── Services/
 │   │       └── ConflictResolutionService.swift
-│   ├── Infrastructure/             # Technical implementations
-│   │   ├── Persistence/
-│   │   │   └── SwiftDataAppointmentRepository.swift
-│   │   └── External/
-│   │       └── CalendarIntegration.swift
 │   ├── Presentation/              # UI Layer
 │   │   ├── ViewModels/
 │   │   │   └── SchedulingViewModel.swift
@@ -102,6 +97,23 @@ Features/Scheduling/                 # Example module
 │       │   └── AppointmentDTO.swift
 │       └── Events/
 │           └── AppointmentScheduledEvent.swift
+
+# Infrastructure is NOT part of individual feature modules
+# It is shared at the Application level:
+Infrastructure/                      # Shared across ALL features
+├── Persistence/
+│   ├── Entities/                   # SwiftData @Model entities
+│   │   ├── AppointmentEntity.swift
+│   │   ├── PatientEntity.swift
+│   │   └── SpecialistEntity.swift
+│   └── Repositories/               # Repository implementations
+│       ├── SwiftDataAppointmentRepository.swift
+│       └── SwiftDataPatientRepository.swift
+├── Services/
+│   ├── CloudKitService.swift
+│   └── AuthenticationService.swift
+└── External/
+    └── CalendarIntegration.swift
 ```
 
 ### Layer Responsibilities
@@ -118,11 +130,12 @@ Features/Scheduling/                 # Example module
 - No UI or infrastructure concerns
 - Handles cross-cutting concerns within the module
 
-**Infrastructure Layer Rules**:
-- Implements repository interfaces
-- Handles persistence, networking, external services
-- Framework-specific code lives here
-- Module-specific technical implementations
+**Infrastructure Layer Rules** (Shared at Application Level):
+- Implements repository interfaces defined in feature modules' Domain layers
+- Handles persistence (SwiftData entities), networking, external services
+- Framework-specific code lives here (SwiftData, CloudKit, etc.)
+- Shared across ALL feature modules - not contained within individual features
+- Provides technical implementations that multiple modules can utilize
 
 **Presentation Layer Rules**:
 - SwiftUI views and view models using @Observable
@@ -332,9 +345,11 @@ The modular architecture employs several key patterns:
 - **Pattern**: MVVM within each module's Presentation layer, with ViewModels as module boundaries
 - **Rationale**: Maintains UI/business logic separation while respecting module isolation
 
-### Repository Pattern with Protocol Abstraction
-- **Pattern**: Domain defines repository protocols, Infrastructure provides implementations
-- **Rationale**: Allows testing with mocks and swapping implementations without affecting business logic
+### Repository Pattern with Centralized Infrastructure
+- **Pattern**: Domain layer defines repository protocols, shared Infrastructure layer (at Application level) implements with SwiftData entities
+- **Architecture**: Infrastructure layer is shared across all feature modules, not contained within individual features
+- **Implementation**: SwiftData `@Model` entities in centralized `Infrastructure/Persistence/Entities/`, pure domain models in each feature's Domain layer
+- **Rationale**: Maintains clean architecture while leveraging SwiftData's advanced features (constraints, CloudKit sync) through shared infrastructure
 
 ### Use Case Pattern
 - **Pattern**: Each user interaction maps to a specific use case class in the Application layer

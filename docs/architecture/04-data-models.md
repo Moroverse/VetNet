@@ -2,47 +2,77 @@
 
 ## Overview
 
-This document details the data modeling strategy for VetNet, including the mapping between rich domain models, Data Transfer Objects (DTOs), and SwiftData persistence entities. The architecture employs a three-layer data approach to maintain clean boundaries while enabling efficient persistence and inter-module communication.
+This document details the data modeling strategy for VetNet, implementing a clean architecture approach that separates domain logic from persistence concerns while leveraging SwiftData's powerful capabilities. The architecture employs a three-layer data approach with Repository pattern abstraction to maintain clean boundaries while enabling efficient persistence and inter-module communication.
 
 Related documents: [01-modular-design.md](01-modular-design.md) | [03-feature-modules.md](03-feature-modules.md) | [02-tech-stack.md](02-tech-stack.md)
 
-## Modular Data Architecture
+## Architectural Decision: SwiftData in Infrastructure Layer
 
-With the modular architecture, data models are organized into three distinct categories:
+**Decision**: Use SwiftData `@Model` entities in the Infrastructure layer with Repository pattern abstraction, maintaining pure domain models in the Domain layer.
+
+**Rationale**:
+- **Clean Architecture Maintained**: Business logic stays in pure Swift domain models
+- **SwiftData Power Leveraged**: Complex constraints, relationships, and CloudKit sync
+- **Testability**: Domain logic tested without persistence, repository interfaces mocked
+- **Performance**: Native SwiftData optimizations and iOS 26 enhancements
+- **HIPAA Compliance**: Custom DataStore protocol implemented at Infrastructure boundary
+
+## Three-Layer Data Architecture
 
 ### Data Model Layers
 
-**1. Internal Domain Models**: Rich domain objects with business logic, residing within feature modules
-- Pure Swift objects with no persistence concerns
-- Contain business rules and domain logic
-- Module-specific and not shared across boundaries
+**1. Domain Models**: Pure Swift business objects with rich domain logic
+- Located in each feature module's Domain layer (`Features/*/Domain/Models/`)
+- No persistence or framework dependencies
+- Contain business rules, invariants, and domain operations
+- Testable in isolation without infrastructure concerns
 
 **2. Data Transfer Objects (DTOs)**: Simple data structures for inter-module communication
+- Located in each feature module's Public layer (`Features/*/Public/`)
 - Codable structs with no business logic
-- Used for module public interfaces
-- Version-stable for API contracts
+- Used for module public interfaces and API contracts
+- Version-stable for backward compatibility
 
-**3. Persistence Models**: SwiftData entities in the Infrastructure layer
-- SwiftData @Model objects with CloudKit integration
-- Designed for efficient storage and synchronization
-- Support compound constraints and relationships
+**3. SwiftData Entities**: Persistence models in the Infrastructure layer
+- Located in Infrastructure layer (`Infrastructure/Persistence/Entities/`)
+- SwiftData `@Model` objects with CloudKit integration
+- Optimized for storage, relationships, and synchronization
+- Support compound constraints and business-rule enforcement
 
-### Data Model Mapping Strategy
+### Repository Pattern Implementation
+
+The Repository pattern provides clean abstraction between domain logic and persistence concerns:
 
 ```swift
-// Example: Appointment data flow across layers
-
-// 1. Internal Domain Model (Features/Scheduling/Domain)
+// 1. Domain Model (Features/Scheduling/Domain/Models/Appointment.swift)
 struct Appointment {
     let id: AppointmentId
     let timeSlot: TimeSlot
     let patientReference: PatientReference
     let specialistReference: SpecialistReference
+    
     // Rich business logic methods
-    func canReschedule(to newSlot: TimeSlot) -> Bool { ... }
+    func canReschedule(to newSlot: TimeSlot) -> Bool {
+        // Business rules for rescheduling
+        guard timeSlot.canBeRescheduled else { return false }
+        return newSlot.isAvailable && newSlot.isCompatibleWith(patientReference)
+    }
+    
+    func calculateEstimatedDuration(basedOn complexity: CaseComplexity) -> TimeInterval {
+        // Domain logic for duration calculation
+    }
 }
 
-// 2. DTO for public interface (Features/Scheduling/Public)
+// 2. Repository Protocol (Features/Scheduling/Domain/Repositories/AppointmentRepository.swift)
+protocol AppointmentRepository {
+    func save(_ appointment: Appointment) async throws
+    func findById(_ id: AppointmentId) async throws -> Appointment?
+    func findByDateRange(_ range: DateInterval) async throws -> [Appointment]
+    func findConflicts(for appointment: Appointment) async throws -> [Appointment]
+    func delete(_ appointment: Appointment) async throws
+}
+
+// 3. DTO for Public Interface (Features/Scheduling/Public/AppointmentDTO.swift)
 public struct AppointmentDTO: Codable {
     public let id: UUID
     public let startTime: Date
@@ -50,9 +80,10 @@ public struct AppointmentDTO: Codable {
     public let patientId: UUID
     public let specialistId: UUID
     public let status: String
+    public let appointmentType: String
 }
 
-// 3. Persistence Model (Infrastructure/Persistence)
+// 4. SwiftData Entity (Infrastructure/Persistence/Entities/AppointmentEntity.swift)
 @Model
 final class AppointmentEntity {
     @Attribute(.unique) var id: UUID
@@ -61,61 +92,133 @@ final class AppointmentEntity {
     var patientId: UUID
     var specialistId: UUID
     var status: AppointmentStatus
+    var appointmentType: AppointmentType
+    var estimatedDuration: TimeInterval
+    var actualDuration: TimeInterval?
+    var notes: String?
+    var createdAt: Date
+    var updatedAt: Date
     
     // SwiftData relationships
     @Relationship var patient: PatientEntity?
     @Relationship var specialist: SpecialistEntity?
+    
+    // Compound constraint preventing double-booking
+    @Attribute(.unique) var scheduleKey: String { 
+        "\(specialistId.uuidString)_\(Int(startTime.timeIntervalSince1970))"
+    }
+}
+
+// 5. Repository Implementation (Infrastructure/Repositories/SwiftDataAppointmentRepository.swift)
+final class SwiftDataAppointmentRepository: AppointmentRepository {
+    private let context: ModelContext
+    
+    init(context: ModelContext) {
+        self.context = context
+    }
+    
+    func save(_ appointment: Appointment) async throws {
+        let entity = AppointmentEntity()
+        entity.id = appointment.id.value
+        entity.startTime = appointment.timeSlot.startTime
+        entity.endTime = appointment.timeSlot.endTime
+        entity.patientId = appointment.patientReference.id.value
+        entity.specialistId = appointment.specialistReference.id.value
+        // ... additional mapping
+        
+        context.insert(entity)
+        try context.save()
+    }
+    
+    func findById(_ id: AppointmentId) async throws -> Appointment? {
+        let predicate = #Predicate<AppointmentEntity> { entity in
+            entity.id == id.value
+        }
+        
+        let descriptor = FetchDescriptor(predicate: predicate)
+        guard let entity = try context.fetch(descriptor).first else { return nil }
+        
+        return mapToDomainModel(entity)
+    }
+    
+    private func mapToDomainModel(_ entity: AppointmentEntity) -> Appointment {
+        // Mapping logic from entity to domain model
+        return Appointment(
+            id: AppointmentId(entity.id),
+            timeSlot: TimeSlot(start: entity.startTime, end: entity.endTime),
+            patientReference: PatientReference(id: PatientId(entity.patientId)),
+            specialistReference: SpecialistReference(id: SpecialistId(entity.specialistId))
+        )
+    }
 }
 ```
 
-## Core Business Entities
+## Core SwiftData Entities
 
-### Practice Entity
-**Purpose**: Represents veterinary practice organization with staff, specialists, and operational parameters
+The following entities represent the persistence layer (`Infrastructure/Persistence/Entities/`) that corresponds to rich domain models in each feature module:
 
-**Key Attributes**:
-- `practiceID`: UUID - Unique practice identifier with CloudKit synchronization
-- `name`: String - Practice name and branding information  
-- `location`: CLLocation - Geographic location for multi-location practices
-- `operatingHours`: OperatingSchedule - Daily operating hours and holiday schedules
-- `specialties`: [SpecialtyType] - Available veterinary specialties and services
+### PracticeEntity
+**Purpose**: Persistence model for veterinary practice organization with staff, specialists, and operational parameters
 
 **SwiftData Implementation**:
 ```swift
 @Model
-final class Practice {
+final class PracticeEntity {
     @Attribute(.unique) var practiceID: UUID
     var name: String
     var location: CLLocation?
-    var operatingHours: OperatingSchedule
-    var specialties: [SpecialtyType]
+    var operatingHours: OperatingScheduleData
+    var specialties: [SpecialtyTypeData]
     var createdAt: Date
     var updatedAt: Date
     
-    @Relationship(deleteRule: .cascade) var specialists: [Specialist] = []
-    @Relationship(deleteRule: .cascade) var appointments: [Appointment] = []
-    @Relationship(deleteRule: .cascade) var patients: [Patient] = []
-    @Relationship(deleteRule: .cascade) var owners: [Owner] = []
+    @Relationship(deleteRule: .cascade) var specialists: [SpecialistEntity] = []
+    @Relationship(deleteRule: .cascade) var appointments: [AppointmentEntity] = []
+    @Relationship(deleteRule: .cascade) var patients: [PatientEntity] = []
+    @Relationship(deleteRule: .cascade) var owners: [OwnerEntity] = []
     
-    init(name: String, location: CLLocation? = nil) {
-        self.practiceID = UUID()
+    init(practiceID: UUID, name: String, location: CLLocation? = nil) {
+        self.practiceID = practiceID
         self.name = name
         self.location = location
-        self.operatingHours = OperatingSchedule()
+        self.operatingHours = OperatingScheduleData()
         self.specialties = []
         self.createdAt = Date()
         self.updatedAt = Date()
     }
 }
 
-// Supporting Value Objects
-struct OperatingSchedule: Codable {
-    let weekdays: [DaySchedule]
-    let holidays: [Holiday]
-    let emergencyHours: EmergencySchedule?
+// Supporting Value Objects for Persistence
+struct OperatingScheduleData: Codable {
+    let weekdays: [DayScheduleData]
+    let holidays: [HolidayData]
+    let emergencyHours: EmergencyScheduleData?
+}
+
+struct SpecialtyTypeData: Codable {
+    let id: UUID
+    let name: String
+    let category: String
+}
+```
+
+**Corresponding Domain Model**:
+```swift
+// Domain Model: Features/Practice/Domain/Models/Practice.swift
+struct Practice {
+    let id: PracticeId
+    let name: String
+    let location: Location?
+    let operatingSchedule: OperatingSchedule
+    let specialties: [Specialty]
     
-    func isOpen(at date: Date) -> Bool {
-        // Business logic for operating hours
+    // Rich business logic
+    func isOperating(at dateTime: Date) -> Bool {
+        return operatingSchedule.isOpen(at: dateTime)
+    }
+    
+    func canAccommodateSpecialty(_ specialty: Specialty) -> Bool {
+        return specialties.contains(specialty)
     }
 }
 ```
