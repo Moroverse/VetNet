@@ -44,9 +44,11 @@ let project = Project(
             ],
             settings:
             .settings(base: [
+                "SWIFT_VERSION": "6.0",
                 "SWIFT_APPROACHABLE_CONCURRENCY": true,
                 "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
-                "SWIFT_STRICT_CONCURRENCY": "Complete"
+                "SWIFT_STRICT_CONCURRENCY": "Complete",
+                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true
             ], configurations: [
                 .debug(
                     name: "Debug",

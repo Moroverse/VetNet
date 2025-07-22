@@ -1,6 +1,6 @@
 // PatientRepository.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-22 19:57 GMT.
+// Created by Daniel Moro on 2025-07-22 19:58 GMT.
 
 import Foundation
 import StateKit
@@ -45,17 +45,6 @@ protocol PatientSearchRepository: Sendable {
     func findCreatedBetween(startDate: Date, endDate: Date) async throws -> [Patient]
 }
 
-// MARK: - Pagination Repository
-
-/// Pagination support for patient queries
-protocol PatientPaginationRepository: Sendable {
-    /// Find patients with pagination using StateKit's PaginationRequest
-    func findWithPagination(_ request: PaginationRequest) async throws -> Paginated<Patient>
-
-    /// Search patients by name with pagination
-    func searchByNameWithPagination(_ nameQuery: String, _ request: PaginationRequest) async throws -> Paginated<Patient>
-}
-
 // MARK: - Utility Repository
 
 /// Utility operations for patient data
@@ -65,6 +54,17 @@ protocol PatientUtilityRepository: Sendable {
 
     /// Check if a medical ID already exists
     func medicalIDExists(_ medicalID: String) async throws -> Bool
+}
+
+// MARK: - Pagination Repository
+
+/// Pagination support for patient queries using StateKit
+protocol PatientPaginationRepository: Sendable {
+    /// Find patients with pagination
+    func findWithPagination(limit: Int) async throws -> Paginated<Patient>
+
+    /// Search patients by name with pagination
+    func searchByNameWithPagination(_ nameQuery: String, limit: Int) async throws -> Paginated<Patient>
 }
 
 // MARK: - Composed Repository Protocol
@@ -90,7 +90,7 @@ enum RepositoryError: Error, Sendable {
 // MARK: - Repository Error Extensions
 
 extension RepositoryError: LocalizedError {
-    var errorDescription: String? {
+    nonisolated var errorDescription: String? {
         switch self {
         case .notFound:
             "The requested resource was not found"

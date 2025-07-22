@@ -1,6 +1,6 @@
 // PatientValidator.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-22 19:45 GMT.
+// Created by Daniel Moro on 2025-07-22 19:58 GMT.
 
 import Foundation
 import QuickForm
@@ -88,19 +88,19 @@ extension PatientValidator {
     var phoneNumberValidation: AnyValidationRule<String> {
         .combined(
             .notEmpty,
-            .of(PhoneNumberValidationRule())
+            PhoneNumberValidationRule()
         )
     }
 
     var emailValidation: AnyValidationRule<String> {
         // Use QuickForm's built-in email validation
-        .email
+        .of(.email)
     }
 
     var medicalIDValidation: AnyValidationRule<String> {
         .combined(
             .notEmpty,
-            .of(MedicalIDValidationRule())
+            MedicalIDValidationRule()
         )
     }
 }
