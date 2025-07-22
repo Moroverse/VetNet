@@ -160,7 +160,7 @@ This is a greenfield iOS project with comprehensive architecture documentation a
 ## Tuist Configuration Notes
 
 ### Project-wide Swift Concurrency Extensions
-- All projects in tuist should have following extensions in infoList:
+- All projects in tuist should have following for build settings:
   - `SWIFT_APPROACHABLE_CONCURRENCY`: true
   - `SWIFT_DEFAULT_ACTOR_ISOLATION`: "MainActor"
   - `SWIFT_STRICT_CONCURRENCY`: "Complete"
@@ -168,4 +168,4 @@ This is a greenfield iOS project with comprehensive architecture documentation a
 
 ## QuickForm Implementation Guidelines
 
-- When working with QuicForm you should always consult @docs/architecture/quickform-patterns.mdc for best approaches to the implementation
+- When working with QuickForm you should always consult @docs/architecture/quickform-patterns.mdc for best approaches to the implementation

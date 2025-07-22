@@ -1,14 +1,11 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
 
 #if TUIST
     import struct ProjectDescription.PackageSettings
 
     let packageSettings = PackageSettings(
-        // Customize the product types for specific package product
-        // Default is .staticFramework
-        // productTypes: ["Alamofire": .framework,]
-        productTypes: [:]
+        productTypes: ["FactoryKit": .framework, "StateKit" : .framework, "SwiftUIRouting" : .framework]
     )
 #endif
 
@@ -20,11 +17,11 @@ let package = Package(
         //View State
         .package(url: "https://github.com/Moroverse/state-kit", from: "0.6.1"),
         // Dependency Injection
-        .package(url: "https://github.com/hmlongco/Factory", from: "2.3.0"),
+        .package(url: "https://github.com/hmlongco/Factory.git", branch: "develop"),
         // Custom Navigation
         .package(path: "../Modules/SwiftUIRouting"),
         // Testing
-        .package(url: "https://github.com/Kolos65/Mockable", from: "0.0.9"),
-        .package(url: "https://github.com/nalexn/ViewInspector", from: "0.10.0")
+        .package(url: "https://github.com/Kolos65/Mockable", from: "0.4.0"),
+        .package(url: "https://github.com/nalexn/ViewInspector", from: "0.10.2")
     ]
 )
