@@ -10,6 +10,7 @@ import SwiftData
 
 /// SwiftData implementation of PatientRepositoryProtocol
 /// Handles persistence operations and entity-domain mapping
+
 final class SwiftDataPatientRepository: PatientRepositoryProtocol {
     private let modelContext: ModelContext
 

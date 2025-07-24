@@ -92,9 +92,9 @@ extension PatientValidator {
         )
     }
 
-    var emailValidation: AnyValidationRule<String> {
+    var emailValidation: AnyValidationRule<String?> {
         // Use QuickForm's built-in email validation
-        .of(.email)
+        .of(OptionalRule.ifPresent(.email))
     }
 
     var medicalIDValidation: AnyValidationRule<String> {

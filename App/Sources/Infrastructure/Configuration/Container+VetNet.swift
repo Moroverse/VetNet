@@ -9,6 +9,7 @@ import SwiftData
 extension Container {
     // MARK: - Data Layer
 
+    @MainActor
     var modelContext: Factory<ModelContext> {
         self {
             let container = ModelContainer.vetNetContainer()
@@ -19,6 +20,7 @@ extension Container {
 
     // MARK: - Patient Management
 
+    @MainActor
     var patientRepository: Factory<PatientRepositoryProtocol> {
         self {
             SwiftDataPatientRepository(modelContext: self.modelContext())
@@ -26,9 +28,25 @@ extension Container {
         .cached
     }
 
+    var dateProvider: Factory<DateProvider> {
+        self {
+            SystemDateProvider()
+        }
+        .cached
+    }
+
+    @MainActor
     var patientValidator: Factory<PatientValidator> {
         self {
             PatientValidator(dateProvider: SystemDateProvider())
+        }
+        .cached
+    }
+
+    @MainActor
+    var router: Factory<VetNetAppRouter> {
+        self {
+            VetNetAppRouter()
         }
         .cached
     }

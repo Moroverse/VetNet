@@ -7,7 +7,6 @@ import SwiftUIRouting
 
 // MARK: - VetNet App Router
 
-@MainActor
 final class VetNetAppRouter: BaseAppRouter {
     // MARK: - Routes
 

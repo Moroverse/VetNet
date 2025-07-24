@@ -1,0 +1,24 @@
+{
+  "originHash" : "c48c5e0d41ccde6732bce21f96fca04d5563fbc49c15122ed79598c9481428b5",
+  "pins" : [
+    {
+      "identity" : "quick-form",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Moroverse/quick-form",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "cec7424d89b6d2b31585bb2158a63c8244697e2f"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "f99ae8aa18f0cf0d53481901f88a0991dc3bd4a2",
+        "version" : "601.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}

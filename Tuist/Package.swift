@@ -5,7 +5,14 @@ import PackageDescription
     import struct ProjectDescription.PackageSettings
 
     let packageSettings = PackageSettings(
-        productTypes: ["FactoryKit": .framework, "StateKit": .framework, "SwiftUIRouting": .framework]
+        productTypes: [
+            "FactoryKit": .framework,
+            "StateKit": .framework,
+            "SwiftUIRouting": .framework,
+            "ConcurrencyExtras": .framework,
+            "IssueReporting": .framework,
+            "IssueReportingPackageSupport": .framework
+        ]
     )
 #endif
 
@@ -13,7 +20,7 @@ let package = Package(
     name: "VetNet",
     dependencies: [
         // Forms
-        .package(url: "https://github.com/Moroverse/quick-form", from: "0.1.2"),
+        //.package(url: "https://github.com/Moroverse/quick-form", exact: "0.1.3"),
         // View State
         .package(url: "https://github.com/Moroverse/state-kit", from: "0.6.1"),
         // Dependency Injection

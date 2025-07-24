@@ -6,6 +6,9 @@ import ProjectDescription
 
 let project = Project(
     name: "VetNet",
+    packages: [
+        .package(url: "https://github.com/Moroverse/quick-form", .branch("develop"))
+    ],
     targets: [
         .target(
             name: "VetNet",
@@ -39,7 +42,7 @@ let project = Project(
                 .external(name: "FactoryKit"),
                 .external(name: "SwiftUIRouting"),
                 .external(name: "Mockable"),
-                .external(name: "QuickForm"),
+                .package(product: "QuickForm"),
                 .external(name: "StateKit")
             ],
             settings:
