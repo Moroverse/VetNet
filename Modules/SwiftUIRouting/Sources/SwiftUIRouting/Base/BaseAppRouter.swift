@@ -1,6 +1,6 @@
 // BaseAppRouter.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-21 18:52 GMT.
+// Created by Daniel Moro on 2025-07-15 06:55 GMT.
 
 import SwiftUI
 
@@ -29,7 +29,7 @@ import SwiftUI
 /// }
 /// ```
 @Observable @MainActor
-open class BaseAppRouter: AppRouting {
+open class BaseAppRouter: @MainActor AppRouting {
     // MARK: - Router Properties
 
     /// The current navigation path for the router

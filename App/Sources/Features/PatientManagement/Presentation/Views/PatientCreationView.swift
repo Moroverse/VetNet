@@ -12,62 +12,55 @@ import StateKit
 
 struct PatientCreationView: View {
     @State private var viewModel: PatientCreationFormViewModel
+    let mode: PatientFormMode
+    let onResult: (PatientFormResult) -> Void
 
-    init(viewModel: PatientCreationFormViewModel) {
-        _viewModel = State(initialValue: viewModel)
+    init(
+        mode: PatientFormMode,
+        onResult: @escaping (PatientFormResult) -> Void
+    ) {
+        self.mode = mode
+        let viewModel = if let patient = mode.patient {
+            PatientCreationFormViewModel(value: patient)
+        } else {
+            PatientCreationFormViewModel(value: PatientComponents())
+        }
+        self._viewModel = State(initialValue: viewModel)
+        self.onResult = onResult
     }
 
     var body: some View {
-        NavigationView {
-            Form {
-                PatientInfoSection(viewModel: viewModel)
+        Form {
+            PatientInfoSection(viewModel: viewModel)
 
-                OwnerInfoSection(viewModel: viewModel)
+            OwnerInfoSection(viewModel: viewModel)
 
-                MedicalInfoSection(viewModel: viewModel)
-            }
-            .navigationTitle("New Patient")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        viewModel.cancel()
-                    }
-                    .accessibilityIdentifier("patient_creation_cancel_button")
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        Task {
-                            await viewModel.save()
+            MedicalInfoSection(viewModel: viewModel)
+        }
+        .navigationTitle(mode.title)
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Save") {
+                    Task {
+                        if let patient = await viewModel.save() {
+                            let result: PatientFormResult = viewModel.isEditing ? .updated(patient) : .created(patient)
+                            onResult(result)
                         }
                     }
-                    .disabled(!viewModel.canSave || viewModel.formState == .saving)
-                    .accessibilityIdentifier("patient_creation_save_button")
                 }
-            }
-//            .onChange(of: viewModel.formState) { _, newState in
-//                handleFormStateChange(newState)
-//            }
-            .alert("Error", isPresented: .constant(viewModel.formState.isError)) {
-                Button("OK") {
-                    // State will be managed by view model based on user actions
-                }
-            } message: {
-                Text(viewModel.formState.errorMessage ?? "An unknown error occurred")
+                .disabled(!viewModel.canSave || viewModel.formState == .saving)
+                .accessibilityIdentifier("patient_creation_save_button")
             }
         }
+        .alert("Error", isPresented: .constant(viewModel.formState.isError)) {
+            Button("OK") {
+                // State will be managed by view model based on user actions
+            }
+        } message: {
+            Text(viewModel.formState.errorMessage ?? "An unknown error occurred")
+        }
     }
-    // FIXME: -
-//    private func handleFormStateChange(_ newState: PatientCreationFormState) {
-//        switch newState {
-//        case .saved(let patient):
-//            router.dismissSheet()
-//            router.navigate(to: PatientProfileRoute(patientId: patient.id))
-//        default:
-//            break
-//        }
-//    }
 }
 
 // MARK: - Patient Info Section
@@ -247,16 +240,6 @@ extension PatientCreationFormState {
     }
 }
 
-// MARK: - Routing Support
-
-// FIXME: -
-// struct PatientProfileRoute: AppRoute {
-//    let patientId: Patient.ID
-//
-//    func body(router: Router) -> some View {
-//        PatientProfileView(patientId: patientId)
-//    }
-// }
 
 // MARK: - Preview Provider
 
@@ -264,23 +247,45 @@ struct PatientCreationView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Normal state with successful repository
-            PatientCreationView(viewModel: PatientCreationFormViewModel(value: .init()))
-                .previewDisplayName("Normal Flow")
+            PatientCreationView(mode: .create) { result in
+                print("Result: \(result)")
+            }
+            .previewDisplayName("Create Mode")
+
+            // Edit mode
+            PatientCreationView(mode: .edit(Patient(
+                name: "Buddy",
+                species: .dog,
+                breed: .dogMixed,
+                birthDate: Date(),
+                weight: .init(value: 12.5, unit: .kilograms),
+                ownerName: "Alice Example",
+                ownerPhoneNumber: "123-456-7890"
+            ))) { result in
+                print("Result: \(result)")
+            }
+            .previewDisplayName("Edit Mode")
 
             // Preview with duplicate key error
             let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .duplicateKeyError) }
-            PatientCreationView(viewModel: PatientCreationFormViewModel(value: .init()))
-                .previewDisplayName("Duplicate Key Error")
+            PatientCreationView(mode: .create) { result in
+                print("Result: \(result)")
+            }
+            .previewDisplayName("Duplicate Key Error")
 
             // Preview with general error
             let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .generalError) }
-            PatientCreationView(viewModel: PatientCreationFormViewModel(value: .init()))
-                .previewDisplayName("General Error")
+            PatientCreationView(mode: .create) { result in
+                print("Result: \(result)")
+            }
+            .previewDisplayName("General Error")
 
             // Preview with slow response (saving state)
             let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .slowResponse) }
-            PatientCreationView(viewModel: PatientCreationFormViewModel(value: .init()))
-                .previewDisplayName("Slow Response")
+            PatientCreationView(mode: .create) { result in
+                print("Result: \(result)")
+            }
+            .previewDisplayName("Slow Response")
         }
     }
 }

@@ -1,6 +1,6 @@
 // AlertRouterView.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-21 18:52 GMT.
+// Created by Daniel Moro on 2025-07-15 06:56 GMT.
 
 import SwiftUI
 
@@ -29,7 +29,7 @@ import SwiftUI
 /// }
 /// ```
 public struct AlertRouterView<Content: View, Router: AppRouting>: View {
-    /// The router handling alert presentations
+    /// The router handling 3alert presentations
     @Bindable private var router: Router
 
     /// The content to wrap with alert functionality

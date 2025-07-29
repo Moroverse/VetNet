@@ -1,6 +1,6 @@
 // BaseFormRouter.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-21 18:52 GMT.
+// Created by Daniel Moro on 2025-07-15 06:54 GMT.
 
 import SwiftUI
 
@@ -37,7 +37,7 @@ import SwiftUI
 /// }
 /// ```
 @Observable @MainActor
-open class BaseFormRouter<FormMode: Identifiable, FormResult: RouteResult & Sendable>: FormRouting where FormMode: Hashable {
+open class BaseFormRouter<FormMode: Identifiable, FormResult: RouteResult>: @MainActor FormRouting where FormMode: Hashable {
     // MARK: - Router Properties
 
     /// The current navigation path for the router
@@ -107,10 +107,13 @@ open class BaseFormRouter<FormMode: Identifiable, FormResult: RouteResult & Send
     /// and call any registered callbacks.
     ///
     /// - Parameter result: The result to handle
-    @MainActor public func handleResult(_ result: FormResult) {
+   public func handleResult(_ result: FormResult) {
         // Resume async continuation if present
         if let continuation = resultContinuation {
-            continuation.resume(returning: result)
+            let resultToSend = result
+            Task {
+                continuation.resume(returning: resultToSend)
+            }
             cleanupContinuation()
         }
 
@@ -187,3 +190,4 @@ public extension BaseFormRouter {
         }
     }
 #endif
+

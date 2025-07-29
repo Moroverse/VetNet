@@ -9,39 +9,42 @@ import SwiftData
 
 /// SwiftData persistence entity for Patient domain model
 /// Located in Infrastructure layer to isolate persistence concerns from domain logic
+/// 
+/// Note: CloudKit integration requires:
+/// - All properties must be optional or have default values
+/// - No unique constraints are allowed
+/// - Uniqueness is enforced at the repository level instead
 @Model
 final class PatientEntity {
     // MARK: - Identity
 
-    @Attribute(.unique)
-    var id: String
+    var id: String = ""
 
     // MARK: - Basic Information
 
-    var name: String
-    var speciesRawValue: String
-    var breedRawValue: String
-    var birthDate: Date
-    var weightValue: Double?
-    var weightUnitSymbol: String?
+    var name: String = ""
+    var speciesRawValue: String = "dog"
+    var breedRawValue: String = "mixed"
+    var birthDate: Date = Date()
+    var weightValue: Double = 0.0
+    var weightUnitSymbol: String = "kg"
 
     // MARK: - Owner Information
 
-    var ownerName: String
-    var ownerPhoneNumber: String
+    var ownerName: String = ""
+    var ownerPhoneNumber: String = ""
     var ownerEmail: String?
 
     // MARK: - Medical Information
 
-    @Attribute(.unique)
-    var medicalID: String
+    var medicalID: String = ""
     var microchipNumber: String?
     var notes: String?
 
     // MARK: - Metadata
 
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: Date = Date()
+    var updatedAt: Date = Date()
 
     // MARK: - CloudKit Specific
 
@@ -52,21 +55,21 @@ final class PatientEntity {
     // MARK: - Initialization
 
     init(
-        id: String,
-        name: String,
-        speciesRawValue: String,
-        breedRawValue: String,
-        birthDate: Date,
-        weightValue: Double? = nil,
-        weightUnitSymbol: String? = nil,
-        ownerName: String,
-        ownerPhoneNumber: String,
+        id: String = "",
+        name: String = "",
+        speciesRawValue: String = "dog",
+        breedRawValue: String = "mixed",
+        birthDate: Date = Date(),
+        weightValue: Double = 0.0,
+        weightUnitSymbol: String = "kg",
+        ownerName: String = "",
+        ownerPhoneNumber: String = "",
         ownerEmail: String? = nil,
-        medicalID: String,
+        medicalID: String = "",
         microchipNumber: String? = nil,
         notes: String? = nil,
-        createdAt: Date,
-        updatedAt: Date,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
         cloudKitZone: String? = nil
     ) {
         self.id = id
@@ -85,6 +88,11 @@ final class PatientEntity {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.cloudKitZone = cloudKitZone
+    }
+    
+    /// Required initializer for SwiftData
+    init() {
+        // All properties have default values
     }
 }
 
@@ -110,23 +118,20 @@ extension PatientEntity {
         }
 
         // Parse weight if present
-        var weight: Measurement<UnitMass>?
-        if let weightValue,
-           let weightUnitSymbol {
-            let unit: UnitMass = switch weightUnitSymbol {
-            case "kg":
+        var weight: Measurement<UnitMass>
+        let unit: UnitMass = switch weightUnitSymbol {
+        case "kg":
                 .kilograms
-            case "g":
+        case "g":
                 .grams
-            case "lb":
+        case "lb":
                 .pounds
-            case "oz":
+        case "oz":
                 .ounces
-            default:
+        default:
                 .kilograms // Default fallback
-            }
-            weight = Measurement(value: weightValue, unit: unit)
         }
+        weight = Measurement(value: weightValue, unit: unit)
 
         return Patient(
             id: Patient.ID(uuid),
@@ -155,14 +160,8 @@ extension PatientEntity {
         breedRawValue = patient.breed.rawValue
         birthDate = patient.birthDate
 
-        // Handle weight conversion
-        if let weight = patient.weight {
-            weightValue = weight.value
-            weightUnitSymbol = weight.unit.symbol
-        } else {
-            weightValue = nil
-            weightUnitSymbol = nil
-        }
+        weightValue = patient.weight.value
+        weightUnitSymbol = patient.weight.unit.symbol
 
         ownerName = patient.ownerName
         ownerPhoneNumber = patient.ownerPhoneNumber
@@ -187,6 +186,8 @@ extension PatientEntity {
             speciesRawValue: patient.species.rawValue,
             breedRawValue: patient.breed.rawValue,
             birthDate: patient.birthDate,
+            weightValue: patient.weight.value,
+            weightUnitSymbol: patient.weight.unit.symbol,
             ownerName: patient.ownerName,
             ownerPhoneNumber: patient.ownerPhoneNumber,
             ownerEmail: patient.ownerEmail,
@@ -195,14 +196,8 @@ extension PatientEntity {
             notes: patient.notes,
             createdAt: patient.createdAt,
             updatedAt: patient.updatedAt,
-            cloudKitZone: cloudKitZone
+            cloudKitZone: cloudKitZone,
         )
-
-        // Handle weight conversion
-        if let weight = patient.weight {
-            entity.weightValue = weight.value
-            entity.weightUnitSymbol = weight.unit.symbol
-        }
 
         return entity
     }

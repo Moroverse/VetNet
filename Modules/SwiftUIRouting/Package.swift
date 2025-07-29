@@ -26,7 +26,12 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         .target(
             name: "SwiftUIRouting",
-            dependencies: []
+            dependencies: [],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self),
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+                .enableUpcomingFeature("InferIsolatedConformances")
+            ]
         ),
         .testTarget(
             name: "SwiftUIRoutingTests",

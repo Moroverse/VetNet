@@ -32,7 +32,7 @@ This epic establishes the core data foundation for the entire application. By im
 
 #### Acceptance Criteria
 
-1. **UI Layer**
+1. **UI Layer & Navigation**
    - Patient creation form with fields:
      - Name (required)
      - Species (required, dropdown)
@@ -43,12 +43,20 @@ This epic establishes the core data foundation for the entire application. By im
      - Medical ID (auto-generated)
      - Microchip number (optional)
      - Notes (optional, multiline)
-   - Form validation with inline errors
-   - Save/Cancel actions
-   - Loading states during save
-   - Success confirmation
+   - Form validation with inline errors using QuickForm
+   - Save/Cancel actions with SwiftUIRouting bidirectional communication
+   - Loading states during save operations
+   - Success confirmation with automatic navigation back to list
+   - Form modes: Create, Edit, View (read-only) with type-safe routing
+   - Navigation routes: Patient Detail, Medical History, Appointment History
 
-2. **Domain Layer**
+2. **Navigation Architecture**
+   - PatientFormMode enum: `.create`, `.edit(Patient)`, `.view(Patient)`
+   - PatientFormResult enum: `.created(Patient, message)`, `.updated(Patient, message)`, `.deleted(Patient, message)`, `.cancelled`, `.error(Error)`
+   - PatientRoute enum: `.patientDetail(Patient)`, `.medicalHistory(Patient)`, `.appointmentHistory(Patient)`, `.editPatient(Patient)`
+   - PatientManagementFormRouter extending BaseFormRouter with type-safe async methods
+
+3. **Domain Layer**
    - Pure Patient domain model in `Features/PatientManagement/Domain/Models/`:
      - No persistence or framework dependencies
      - Rich business logic methods (age calculation, validation)

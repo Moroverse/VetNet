@@ -26,7 +26,7 @@ let package = Package(
         // Dependency Injection
         .package(url: "https://github.com/hmlongco/Factory.git", branch: "develop"),
         // Custom Navigation
-        .package(path: "../Modules/SwiftUIRouting"),
+        //.package(path: "../Modules/SwiftUIRouting"),
         // Testing
         .package(url: "https://github.com/Kolos65/Mockable", from: "0.4.0"),
         .package(url: "https://github.com/nalexn/ViewInspector", from: "0.10.2"),

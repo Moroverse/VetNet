@@ -86,6 +86,11 @@ Features/Scheduling/                 # Example module
 │   │   │   └── RescheduleAppointmentUseCase.swift
 │   │   └── Services/
 │   │       └── ConflictResolutionService.swift
+│   ├── Navigation/                 # SwiftUIRouting navigation layer
+│   │   ├── SchedulingFormMode.swift      # Form modes for routing
+│   │   ├── SchedulingFormResult.swift    # Form results with type safety
+│   │   ├── SchedulingRoute.swift         # Navigation routes
+│   │   └── SchedulingFormRouter.swift    # Router implementation
 │   ├── Presentation/              # UI Layer
 │   │   ├── ViewModels/
 │   │   │   └── SchedulingViewModel.swift
@@ -137,11 +142,19 @@ Infrastructure/                      # Shared across ALL features
 - Shared across ALL feature modules - not contained within individual features
 - Provides technical implementations that multiple modules can utilize
 
+**Navigation Layer Rules** (SwiftUIRouting):
+- Defines form modes, results, and navigation routes for the module
+- Extends BaseFormRouter with module-specific routing methods
+- Type-safe routing with compile-time guarantees
+- Bidirectional form communication with async/await patterns
+- Integrates with FactoryKit dependency injection
+
 **Presentation Layer Rules**:
 - SwiftUI views and view models using @Observable
-- Depends only on Application layer
+- Depends only on Application layer and Navigation layer
 - Uses DTOs for external communication
 - iOS 26 Liquid Glass integration
+- ViewModels receive router and repository through dependency injection
 
 **Public Layer Rules**:
 - Defines module's public interface
@@ -205,6 +218,345 @@ public struct PatientDTO: Codable {
     // Only data needed for external communication
 }
 ```
+
+## SwiftUIRouting Navigation Architecture
+
+VetNet leverages a custom SwiftUIRouting framework that provides type-safe, bidirectional navigation with async/await integration. Each feature module implements navigation through a standardized pattern that ensures compile-time safety and clean separation of concerns.
+
+### Navigation Layer Components
+
+Each feature module's Navigation layer consists of four key components:
+
+#### 1. Form Mode Definitions
+
+Form modes define the different states a form can be presented in:
+
+```swift
+// Features/PatientManagement/Navigation/PatientFormMode.swift
+enum PatientFormMode: Identifiable, Hashable {
+    case create
+    case edit(Patient)
+    case view(Patient)
+    
+    var id: String {
+        switch self {
+        case .create:
+            return "create"
+        case .edit(let patient):
+            return "edit-\(patient.id.uuidString)"
+        case .view(let patient):
+            return "view-\(patient.id.uuidString)"
+        }
+    }
+}
+```
+
+#### 2. Form Result Types
+
+Result types define the possible outcomes of form operations using the RouteResult protocol:
+
+```swift
+// Features/PatientManagement/Navigation/PatientFormResult.swift
+enum PatientFormResult: RouteResult {
+    case created(Patient, message: String = "Patient created successfully")
+    case updated(Patient, message: String = "Patient updated successfully")
+    case deleted(Patient, message: String = "Patient deleted successfully")
+    case cancelled
+    case error(Error)
+    
+    var isSuccess: Bool {
+        switch self {
+        case .created, .updated, .deleted: return true
+        case .cancelled, .error: return false
+        }
+    }
+    
+    var patient: Patient? {
+        switch self {
+        case .created(let patient, _), .updated(let patient, _), .deleted(let patient, _):
+            return patient
+        case .cancelled, .error:
+            return nil
+        }
+    }
+    
+    var successMessage: String? {
+        switch self {
+        case .created(_, let message), .updated(_, let message), .deleted(_, let message):
+            return message
+        case .cancelled, .error:
+            return nil
+        }
+    }
+}
+```
+
+#### 3. Navigation Routes
+
+Navigation routes define the different destinations within a module:
+
+```swift
+// Features/PatientManagement/Navigation/PatientRoute.swift
+enum PatientRoute: Hashable {
+    case patientDetail(Patient)
+    case medicalHistory(Patient)
+    case appointmentHistory(Patient)
+    case editPatient(Patient)
+}
+```
+
+#### 4. Router Implementation
+
+Routers extend BaseFormRouter with module-specific methods:
+
+```swift
+// Features/PatientManagement/Navigation/PatientManagementFormRouter.swift
+import SwiftUIRouting
+
+@Observable
+final class PatientManagementFormRouter: BaseFormRouter<PatientFormMode, PatientFormResult> {
+    
+    // MARK: - Form Routing Methods
+    
+    func createPatient() async -> PatientFormResult {
+        await presentForm(.create)
+    }
+    
+    func editPatient(_ patient: Patient) async -> PatientFormResult {
+        await presentForm(.edit(patient))
+    }
+    
+    func viewPatient(_ patient: Patient) async -> PatientFormResult {
+        await presentForm(.view(patient))
+    }
+    
+    // MARK: - Navigation Methods
+    
+    func navigateToPatientDetail(_ patient: Patient) {
+        navigate(to: PatientRoute.patientDetail(patient))
+    }
+    
+    func navigateToMedicalHistory(_ patient: Patient) {
+        navigate(to: PatientRoute.medicalHistory(patient))
+    }
+    
+    func navigateToAppointmentHistory(_ patient: Patient) {
+        navigate(to: PatientRoute.appointmentHistory(patient))
+    }
+    
+    func navigateToEditPatient(_ patient: Patient) {
+        navigate(to: PatientRoute.editPatient(patient))
+    }
+}
+```
+
+### ViewModel Integration Pattern
+
+ViewModels receive both repository and router dependencies, handling form results with standardized patterns:
+
+```swift
+// Features/PatientManagement/Presentation/ViewModels/PatientListViewModel.swift
+@Observable
+final class PatientListViewModel {
+    @Injected(\.patientRepository)
+    private var repository: PatientRepositoryProtocol
+    
+    @InjectedObservable(\.patientManagementRouter)
+    private var router: PatientManagementFormRouter
+    
+    var searchText: String = ""
+    var showingAlert = false
+    var alertMessage: String = ""
+    
+    var patients: [Patient] {
+        repository.patients
+    }
+    
+    var filteredPatients: [Patient] {
+        if searchText.isEmpty {
+            return patients
+        }
+        return patients.filter { patient in
+            patient.name.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    // MARK: - Actions
+    
+    func addNewPatient() async {
+        let result = await router.createPatient()
+        await handleFormResult(result)
+    }
+    
+    func editPatient(_ patient: Patient) async {
+        let result = await router.editPatient(patient)
+        await handleFormResult(result)
+    }
+    
+    func navigateToPatient(_ patient: Patient) {
+        router.navigateToPatientDetail(patient)
+    }
+    
+    // MARK: - Result Handling
+    
+    @MainActor
+    private func handleFormResult(_ result: PatientFormResult) async {
+        switch result {
+        case .created(let patient, let message):
+            repository.addPatient(patient)
+            showSuccessAlert(message)
+            
+        case .updated(let patient, let message):
+            repository.updatePatient(patient)
+            showSuccessAlert(message)
+            
+        case .deleted(let patient, let message):
+            repository.deletePatient(patient)
+            showSuccessAlert(message)
+            
+        case .cancelled:
+            // User cancelled, no action needed
+            break
+            
+        case .error(let error):
+            showErrorAlert(error.localizedDescription)
+        }
+    }
+    
+    private func showSuccessAlert(_ message: String) {
+        alertMessage = message
+        showingAlert = true
+    }
+    
+    private func showErrorAlert(_ message: String) {
+        alertMessage = message
+        showingAlert = true
+    }
+}
+```
+
+### SwiftUI Integration Pattern
+
+Views integrate with routers through FormRouterView and NavigationRouterView:
+
+```swift
+// Features/PatientManagement/Presentation/Views/PatientManagementView.swift
+struct PatientManagementView: View {
+    @InjectedObservable(\.patientManagementRouter) 
+    private var router: PatientManagementFormRouter
+    
+    var body: some View {
+        FormRouterView.sheet(router: router) {
+            NavigationRouterView(router: router) {
+                PatientListView()
+            } destination: { (route: PatientRoute) in
+                switch route {
+                case .patientDetail(let patient):
+                    PatientDetailView(patient: patient)
+                case .medicalHistory(let patient):
+                    MedicalHistoryView(patient: patient)
+                case .appointmentHistory(let patient):
+                    AppointmentHistoryView(patient: patient)
+                case .editPatient(let patient):
+                    PatientEditView(patient: patient)
+                }
+            }
+        } formContent: { mode in
+            NavigationStack {
+                switch mode {
+                case .create:
+                    PatientCreationView()
+                case .edit(let patient):
+                    PatientEditView(patient: patient)
+                case .view(let patient):
+                    PatientDetailView(patient: patient, isReadOnly: true)
+                }
+            }
+        }
+    }
+}
+```
+
+### Dependency Injection Integration
+
+Routers are registered with FactoryKit and integrated into the container system:
+
+```swift
+// Infrastructure/Configuration/Container+VetNet.swift
+extension Container {
+    @MainActor
+    var patientManagementRouter: Factory<PatientManagementFormRouter> {
+        self {
+            PatientManagementFormRouter()
+        }
+        .cached
+    }
+    
+    @MainActor
+    var patientListViewModel: Factory<PatientListViewModel> {
+        self {
+            PatientListViewModel()
+        }
+        .cached
+    }
+}
+```
+
+### Testing Integration
+
+Mock routers enable comprehensive testing of navigation flows:
+
+```swift
+// Tests/PatientManagement/Mocks/MockPatientRouter.swift
+final class MockPatientManagementFormRouter: PatientManagementFormRouter {
+    var createPatientResult: PatientFormResult = .cancelled
+    var editPatientResult: PatientFormResult = .cancelled
+    var didNavigateToDetail = false
+    var didNavigateToHistory = false
+    
+    override func createPatient() async -> PatientFormResult {
+        return createPatientResult
+    }
+    
+    override func editPatient(_ patient: Patient) async -> PatientFormResult {
+        return editPatientResult
+    }
+    
+    override func navigateToPatientDetail(_ patient: Patient) {
+        didNavigateToDetail = true
+        super.navigateToPatientDetail(patient)
+    }
+}
+
+// Tests/PatientManagement/ViewModels/PatientListViewModelTests.swift
+@Test("Patient creation updates repository")
+func testPatientCreation() async {
+    let mockRepository = MockPatientRepository()
+    let mockRouter = MockPatientManagementFormRouter()
+    let newPatient = Patient.testPatient
+    
+    mockRouter.createPatientResult = .created(newPatient)
+    
+    let viewModel = PatientListViewModel(
+        repository: mockRepository,
+        router: mockRouter
+    )
+    
+    await viewModel.addNewPatient()
+    
+    #expect(mockRepository.patients.contains(newPatient))
+}
+```
+
+### SwiftUIRouting Best Practices
+
+1. **Type Safety**: Always use enum-based form modes and results for compile-time safety
+2. **Async/Await**: Prefer async routing methods over callback-based approaches
+3. **Result Handling**: Implement comprehensive result handling in ViewModels
+4. **Dependency Injection**: Inject routers and repositories rather than creating them internally
+5. **Testing**: Use mock routers to test navigation flows and form results
+6. **Error Handling**: Always handle error cases in form results
+7. **User Feedback**: Provide appropriate success and error messages for form operations
 
 ### Cross-Module Data Flow Example
 
@@ -341,9 +693,10 @@ final class AppContainer {
 
 The modular architecture employs several key patterns:
 
-### iOS 26 + SwiftUI MVVM with Modular Boundaries
-- **Pattern**: MVVM within each module's Presentation layer, with ViewModels as module boundaries
-- **Rationale**: Maintains UI/business logic separation while respecting module isolation
+### SwiftUIRouting + MVVM with Navigation Separation
+- **Pattern**: MVVM with dedicated Navigation layer using SwiftUIRouting framework
+- **Implementation**: BaseFormRouter extension for each module, type-safe routing with async/await
+- **Rationale**: Maintains clean separation between navigation logic and business logic while providing compile-time safety and bidirectional communication
 
 ### Repository Pattern with Centralized Infrastructure
 - **Pattern**: Domain layer defines repository protocols, shared Infrastructure layer (at Application level) implements with SwiftData entities

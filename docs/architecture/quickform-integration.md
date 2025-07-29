@@ -77,59 +77,115 @@ Comprehensive validation with:
 
 ### 1. Patient Information Forms
 
-**Use Case**: Capturing and editing patient demographics, medical history, and contact information.
+**Use Case**: Capturing and editing patient demographics, medical history, and contact information. This pattern shows integration with SwiftUIRouting for bidirectional form communication.
 
 ```swift
 import QuickForm
 
-@QuickForm(Patient.self)
-class PatientEditModel: Validatable {
-    @PropertyEditor(keyPath: \Patient.name)
-    var patientName = FormFieldViewModel(
+// Domain model (pure Swift)
+struct Patient: Identifiable, Equatable {
+    let id: UUID
+    var name: String
+    var species: Species
+    var breed: Breed
+    var dateOfBirth: Date?
+    var weight: Measurement<UnitMass>?
+}
+
+// Component struct for form fields
+struct PatientCreationComponents: Sendable {
+    var name: String = ""
+    var species: Species = .dog
+    var breed: Breed = .dogMixed
+    var dateOfBirth: Date?
+    var weight: Measurement<UnitMass>?
+}
+
+@QuickForm(PatientCreationComponents.self)
+final class PatientCreationFormViewModel: Validatable {
+    @PropertyEditor(keyPath: \PatientCreationComponents.name)
+    var name = FormFieldViewModel(
         type: String.self,
         title: "Patient Name",
         placeholder: "Max",
         validation: .combined(.notEmpty, .minLength(1), .maxLength(50))
     )
     
-    @PropertyEditor(keyPath: \Patient.species)
+    @PropertyEditor(keyPath: \PatientCreationComponents.species)
     var species = PickerFieldViewModel(
         type: Species.self,
         allValues: Species.allCases,
         title: "Species"
     )
     
-    @PropertyEditor(keyPath: \Patient.breed)
-    var breed = AsyncPickerFieldViewModel(
-        value: nil,
-        title: "Breed",
-        valuesProvider: { query in
-            try await BreedService.searchBreeds(species: self.species.value, query: query)
-        },
-        queryBuilder: { $0?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
+    @PropertyEditor(keyPath: \PatientCreationComponents.breed)
+    var breed = PickerFieldViewModel(
+        type: Breed.self,
+        allValues: Breed.allCases,
+        title: "Breed"
     )
     
-    @PropertyEditor(keyPath: \Patient.dateOfBirth)
+    @PropertyEditor(keyPath: \PatientCreationComponents.dateOfBirth)
     var dateOfBirth = FormFieldViewModel(
         type: Date?.self,
         title: "Date of Birth"
     )
     
-    @PropertyEditor(keyPath: \Patient.weight)
+    @PropertyEditor(keyPath: \PatientCreationComponents.weight)
     var weight = FormFieldViewModel(
         type: Measurement<UnitMass>?.self,
         title: "Weight"
     )
     
+    // Dependency injection for services
+    @Injected(\.patientRepository)
+    private var repository: PatientRepositoryProtocol
+    
+    @InjectedObservable(\.patientManagementRouter)
+    private var router: PatientManagementFormRouter
+    
     @PostInit
     func configure() {
         // Set up reactive relationships
         species.onValueChanged { [weak self] newSpecies in
-            self?.breed.value = nil // Reset breed when species changes
+            self?.updateBreedsForSpecies(newSpecies)
         }
         
         // Add custom validation
-        addCustomValidationRule(AgeValidationRule())
+        addCustomValidationRule(PetAgeValidationRule())
+    }
+    
+    private func updateBreedsForSpecies(_ species: Species) {
+        breed.allValues = Breed.breedsForSpecies(species)
+        breed.value = breed.allValues.first ?? .mixed
+    }
+    
+    // MARK: - Form Actions
+    
+    func savePatient() async -> PatientFormResult {
+        guard validate().isValid else {
+            return .error(ValidationError.invalidForm)
+        }
+        
+        do {
+            let patient = Patient(
+                id: UUID(),
+                name: value.name,
+                species: value.species,
+                breed: value.breed,
+                dateOfBirth: value.dateOfBirth,
+                weight: value.weight
+            )
+            
+            try await repository.save(patient)
+            return .created(patient, message: "Patient \(pattern.name) created successfully")
+        } catch {
+            return .error(error)
+        }
+    }
+    
+    func cancel() async -> PatientFormResult {
+        return .cancelled
     }
 }
 ```
@@ -147,42 +203,55 @@ extension Container {
 }
 ```
 
-**SwiftUI Integration**:
+**SwiftUI Integration with Router**:
 
 ```swift
-struct PatientEditView: View {
-    @InjectedObject(\.patientEditViewModel) private var model
+struct PatientCreationView: View {
+    @State private var viewModel = PatientCreationFormViewModel(value: PatientCreationComponents())
     
     var body: some View {
         NavigationView {
             Form {
                 Section("Basic Information") {
-                    FormTextField(model.patientName)
+                    FormTextField(viewModel.name)
                         .accessibilityIdentifier("patient_name_field")
                     
-                    FormPickerField(model.species)
+                    FormPickerField(viewModel.species)
                         .accessibilityIdentifier("species_picker")
                     
-                    FormAsyncPickerField(model.breed)
+                    FormPickerField(viewModel.breed)
                         .accessibilityIdentifier("breed_picker")
                 }
                 
                 Section("Physical Details") {
-                    FormDatePickerField(model.dateOfBirth)
+                    FormDatePickerField(viewModel.dateOfBirth)
                         .accessibilityIdentifier("date_of_birth_picker")
                     
-                    FormValueUnitField(model.weight)
+                    FormMeasurementField(viewModel.weight)
                         .accessibilityIdentifier("weight_field")
                 }
             }
-            .navigationTitle("Patient Information")
+            .navigationTitle("New Patient")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Save") {
-                        if model.validate().isValid {
-                            savePatient(model.value)
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        Task {
+                            let result = await viewModel.cancel()
+                            viewModel.router.handleResult(result)
                         }
                     }
+                    .accessibilityIdentifier("cancel_patient_button")
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Save") {
+                        Task {
+                            let result = await viewModel.savePatient()
+                            viewModel.router.handleResult(result)
+                        }
+                    }
+                    .disabled(!viewModel.validate().isValid)
                     .accessibilityIdentifier("save_patient_button")
                 }
             }
@@ -455,7 +524,7 @@ VetNet-specific validation rules for domain requirements:
 ```swift
 // Age validation for pets
 struct PetAgeValidationRule: ValidationRule {
-    func validate(_ form: PatientEditModel) -> ValidationResult {
+    func validate(_ form: PatientCreationFormViewModel) -> ValidationResult {
         guard let birthDate = form.dateOfBirth.value else {
             return .success
         }
@@ -515,7 +584,7 @@ QuickForm forms integrate seamlessly with VetNet's ViewInspector testing strateg
 ```swift
 @Test("Patient form validates required fields")
 func testPatientFormValidation() throws {
-    let model = PatientEditModel()
+    let model = PatientCreationFormViewModel(value: PatientCreationComponents())
     
     // Test empty form validation
     let emptyResult = model.validate()
@@ -523,7 +592,7 @@ func testPatientFormValidation() throws {
     #expect(emptyResult.errors.contains { $0.contains("Patient Name") })
     
     // Test valid form
-    model.patientName.value = "Max"
+    model.name.value = "Max"
     model.species.value = .dog
     
     let validResult = model.validate()
@@ -532,7 +601,7 @@ func testPatientFormValidation() throws {
 
 @Test("Patient form UI responds to validation")
 func testPatientFormUI() throws {
-    let view = PatientEditView()
+    let view = PatientCreationView()
     
     let patientNameField = try view.inspect()
         .find(viewWithAccessibilityIdentifier: "patient_name_field")

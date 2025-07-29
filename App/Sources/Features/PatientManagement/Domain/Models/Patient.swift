@@ -19,7 +19,7 @@ struct Patient: Sendable, Identifiable, Hashable {
     var species: Species
     var breed: Breed
     var birthDate: Date
-    var weight: Measurement<UnitMass>?
+    var weight: Measurement<UnitMass>
 
     // MARK: - Owner Information
 
@@ -46,7 +46,7 @@ struct Patient: Sendable, Identifiable, Hashable {
         species: Species,
         breed: Breed,
         birthDate: Date,
-        weight: Measurement<UnitMass>? = nil,
+        weight: Measurement<UnitMass>,
         ownerName: String,
         ownerPhoneNumber: String,
         ownerEmail: String? = nil,
@@ -168,7 +168,7 @@ extension Patient {
             validator.isValidPhoneNumber(ownerPhoneNumber) &&
             validator.isValidEmail(ownerEmail ?? "") &&
             validator.isValidMedicalID(medicalID) &&
-            (weight == nil || validator.isValidWeight(weight!, for: species))
+            validator.isValidWeight(weight, for: species)
     }
 }
 

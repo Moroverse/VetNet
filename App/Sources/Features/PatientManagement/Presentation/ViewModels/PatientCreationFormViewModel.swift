@@ -19,7 +19,9 @@ enum PatientCreationFormState: Equatable {
 
 // MARK: - Form Components
 
-struct PatientCreationComponents: Sendable {
+struct PatientComponents: Sendable {
+    var id: Patient.ID?
+    var createdAt: Date?
     var name: String = ""
     var species: Species = .dog
     var breed: Breed = .dogMixed
@@ -31,12 +33,35 @@ struct PatientCreationComponents: Sendable {
     var medicalID: String = ""
     var microchipNumber: String?
     var notes: String?
+
+    init() {}
+
+    init(patient: Patient) {
+        self.id = patient.id
+        self.createdAt = patient.createdAt
+        self.name = patient.name
+        self.species = patient.species
+        self.breed = patient.breed
+        self.birthDate = patient.birthDate
+        self.weight = patient.weight
+        self.ownerName = patient.ownerName
+        self.ownerPhoneNumber = patient.ownerPhoneNumber
+        self.ownerEmail = patient.ownerEmail
+        self.medicalID = patient.medicalID
+        self.microchipNumber = patient.microchipNumber
+        self.notes = patient.notes
+    }
 }
 
 // MARK: - Patient Creation Form View Model
 
-@QuickForm(PatientCreationComponents.self)
+@QuickForm(PatientComponents.self)
 final class PatientCreationFormViewModel: Validatable {
+    
+    convenience init(value: Patient) {
+        //FIXME: - create components from patient
+        self.init(value: .init(patient: value))
+    }
     
     @Injected(\.patientRepository)
     private var repository
@@ -44,39 +69,37 @@ final class PatientCreationFormViewModel: Validatable {
     @Injected(\.dateProvider)
     private var dateProvider
 
-    @Injected(\.router)
-    private var router
 
     // MARK: - Patient Information Fields
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.name)
+    @PropertyEditor(keyPath: \PatientComponents.name)
     var name = FormFieldViewModel(
         type: String.self,
         title: "Patient Name",
         placeholder: "Enter patient name"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.species)
+    @PropertyEditor(keyPath: \PatientComponents.species)
     var species = PickerFieldViewModel(
         value: Species.dog,
         allValues: Species.allCases,
         title: "Species"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.breed)
+    @PropertyEditor(keyPath: \PatientComponents.breed)
     var breed = PickerFieldViewModel(
         value: Breed.dogMixed,
         allValues: Breed.allCases,
         title: "Breed"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.birthDate)
+    @PropertyEditor(keyPath: \PatientComponents.birthDate)
     var birthDate = FormFieldViewModel(
         value: Date(),
         title: "Birth Date"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.weight)
+    @PropertyEditor(keyPath: \PatientComponents.weight)
     var weight = FormFieldViewModel(
         value: Measurement(value: 0, unit: UnitMass.kilograms),
         title: "Weight (kg)",
@@ -85,59 +108,77 @@ final class PatientCreationFormViewModel: Validatable {
     
     // MARK: - Owner Information Fields
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.ownerName)
+    @PropertyEditor(keyPath: \PatientComponents.ownerName)
     var ownerName = FormFieldViewModel(
         type: String.self,
         title: "Owner Name",
         placeholder: "Enter owner name"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.ownerPhoneNumber)
+    @PropertyEditor(keyPath: \PatientComponents.ownerPhoneNumber)
     var ownerPhoneNumber = FormFieldViewModel(
         type: String.self,
         title: "Phone Number",
         placeholder: "Enter phone number"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.ownerEmail)
+    @PropertyEditor(keyPath: \PatientComponents.ownerEmail)
     var ownerEmail = FormFieldViewModel(
         type: String?.self,
-        title: "Email (Optional)",
-        placeholder: "Enter email address"
+        title: "Email",
+        placeholder: "Enter email address (optional)"
     )
     
     // MARK: - Medical Information Fields
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.medicalID)
+    @PropertyEditor(keyPath: \PatientComponents.medicalID)
     var medicalID = FormFieldViewModel(
         type: String.self,
         title: "Medical ID",
         placeholder: "Enter or generate medical ID"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.microchipNumber)
+    @PropertyEditor(keyPath: \PatientComponents.microchipNumber)
     var microchipNumber = FormFieldViewModel(
         type: String?.self,
-        title: "Microchip Number (Optional)",
-        placeholder: "Enter microchip number"
+        title: "Microchip Number",
+        placeholder: "Enter microchip number (optional)"
     )
     
-    @PropertyEditor(keyPath: \PatientCreationComponents.notes)
+    @PropertyEditor(keyPath: \PatientComponents.notes)
     var notes = FormFieldViewModel(
         type: String?.self,
-        title: "Notes (Optional)",
-        placeholder: "Enter additional notes"
+        title: "Notes",
+        placeholder: "Enter additional notes (optional)"
     )
     
     // MARK: - State
     
     @StateObserved
     private(set) var formState: PatientCreationFormState = .idle
-    
+
+    var isEditing: Bool {
+        value.id != nil
+    }
+
     // MARK: - Configuration
     
     @PostInit
     private func configure() {
+        // If we have an existing patient, populate the fields
+        if isEditing {
+            name.value = value.name
+            species.value = value.species
+            breed.value = value.breed
+            birthDate.value = value.birthDate
+            weight.value = value.weight
+            ownerName.value = value.ownerName
+            ownerPhoneNumber.value = value.ownerPhoneNumber
+            ownerEmail.value = value.ownerEmail
+            medicalID.value = value.medicalID
+            microchipNumber.value = value.microchipNumber
+            notes.value = value.notes
+        }
         let validator = PatientValidator(dateProvider: dateProvider)
         
         // Set up validation rules
@@ -217,7 +258,7 @@ final class PatientCreationFormViewModel: Validatable {
     }
     
     @MainActor
-    func save() async {
+    func save() async -> Patient? {
         formState = .saving
         
         // Validate form
@@ -227,42 +268,66 @@ final class PatientCreationFormViewModel: Validatable {
             break
         case .failure(let message):
             formState = .validationError(String(localized: message))
-            return
+            return nil
         }
         
         do {
             let now = dateProvider.now()
-            let patient = Patient(
-                id: Patient.ID(),
-                name: name.value,
-                species: species.value,
-                breed: breed.value,
-                birthDate: birthDate.value,
-                weight: weight.value.value > 0 ? weight.value : nil,
-                ownerName: ownerName.value,
-                ownerPhoneNumber: ownerPhoneNumber.value,
-                ownerEmail: ownerEmail.value,
-                medicalID: medicalID.value,
-                microchipNumber: microchipNumber.value,
-                notes: notes.value,
-                createdAt: now,
-                updatedAt: now
-            )
+            let patient: Patient
             
-            let savedPatient = try await repository.create(patient)
-            formState = .saved(savedPatient)
+            if let id = value.id, let createdAt = value.createdAt {
+                // Update existing patient
+                patient = Patient(
+                    id: id,
+                    name: name.value,
+                    species: species.value,
+                    breed: breed.value,
+                    birthDate: birthDate.value,
+                    weight: weight.value,
+                    ownerName: ownerName.value,
+                    ownerPhoneNumber: ownerPhoneNumber.value,
+                    ownerEmail: ownerEmail.value,
+                    medicalID: medicalID.value,
+                    microchipNumber: microchipNumber.value,
+                    notes: notes.value,
+                    createdAt: createdAt,
+                    updatedAt: now
+                )
+                let savedPatient = try await repository.update(patient)
+                formState = .saved(savedPatient)
+                return savedPatient
+            } else {
+                // Create new patient
+                patient = Patient(
+                    id: Patient.ID(),
+                    name: name.value,
+                    species: species.value,
+                    breed: breed.value,
+                    birthDate: birthDate.value,
+                    weight: weight.value,
+                    ownerName: ownerName.value,
+                    ownerPhoneNumber: ownerPhoneNumber.value,
+                    ownerEmail: ownerEmail.value,
+                    medicalID: medicalID.value,
+                    microchipNumber: microchipNumber.value,
+                    notes: notes.value,
+                    createdAt: now,
+                    updatedAt: now
+                )
+                let savedPatient = try await repository.create(patient)
+                formState = .saved(savedPatient)
+                return savedPatient
+            }
             
         } catch RepositoryError.duplicateKey(let key) {
             formState = .error("A patient with \(key) already exists. Please use a different medical ID.")
+            return nil
         } catch {
-            formState = .error("Failed to create patient: \(error.localizedDescription)")
+            formState = .error("Failed to save patient: \(error.localizedDescription)")
+            return nil
         }
     }
 
-    func cancel() {
-        //FIXME: -
-        //router.dismissSheet()
-    }
 
     var birthDateRange: ClosedRange<Date> {
         PatientValidator(dateProvider: dateProvider).birthDateRange

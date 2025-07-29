@@ -8,7 +8,7 @@ import SwiftUI
 struct VetNetApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            PatientManagementView()
         }
     }
 }

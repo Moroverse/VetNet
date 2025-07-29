@@ -55,6 +55,10 @@ and the comprehensive example application included with this package.
 
 ## Topics
 
+### Getting Started
+
+- <doc:GettingStarted>
+
 ### Core Protocols
 
 - ``Router``

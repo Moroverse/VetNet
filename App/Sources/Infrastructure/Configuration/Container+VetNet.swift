@@ -42,14 +42,6 @@ extension Container {
         }
         .cached
     }
-
-    @MainActor
-    var router: Factory<VetNetAppRouter> {
-        self {
-            VetNetAppRouter()
-        }
-        .cached
-    }
 }
 
 // MARK: - ModelContainer Extension

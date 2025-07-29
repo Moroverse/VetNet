@@ -1,6 +1,6 @@
 // FormRouting.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-21 18:52 GMT.
+// Created by Daniel Moro on 2025-07-15 06:50 GMT.
 
 import SwiftUI
 
@@ -36,7 +36,7 @@ import SwiftUI
 ///     }
 /// }
 /// ```
-@MainActor
+
 public protocol FormRouting: Router {
     /// The type representing different form modes (create, edit, etc.)
     /// Must conform to `Identifiable` for SwiftUI sheet binding

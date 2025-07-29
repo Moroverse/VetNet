@@ -7,7 +7,8 @@ import ProjectDescription
 let project = Project(
     name: "VetNet",
     packages: [
-        .package(url: "https://github.com/Moroverse/quick-form", .branch("develop"))
+        .package(url: "https://github.com/Moroverse/quick-form", .branch("develop")),
+        .package(path: "Modules/SwiftUIRouting")
     ],
     targets: [
         .target(
@@ -40,7 +41,7 @@ let project = Project(
             ]),
             dependencies: [
                 .external(name: "FactoryKit"),
-                .external(name: "SwiftUIRouting"),
+                .package(product: "SwiftUIRouting"),
                 .external(name: "Mockable"),
                 .package(product: "QuickForm"),
                 .external(name: "StateKit")
