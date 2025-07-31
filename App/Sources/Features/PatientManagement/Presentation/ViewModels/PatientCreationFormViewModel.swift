@@ -62,7 +62,7 @@ final class PatientCreationFormViewModel: Validatable {
         self.init(value: .init(patient: value))
     }
     
-    @Injected(\.patientRepository)
+    @Injected(\.patientCRUDRepository)
     private var repository
     
     @Injected(\.dateProvider)
@@ -177,7 +177,10 @@ final class PatientCreationFormViewModel: Validatable {
             medicalID.value = value.medicalID
             microchipNumber.value = value.microchipNumber
             notes.value = value.notes
+        } else {
+            medicalID.value = MedicalIDGenerator.generateID(for: species.value, name: name.value.isEmpty ? "Patient" : name.value)
         }
+
         let validator = PatientValidator(dateProvider: dateProvider)
         
         // Set up validation rules
@@ -244,9 +247,6 @@ final class PatientCreationFormViewModel: Validatable {
             guard let self else { return }
             formState = .editing
         }
-        
-        // Generate initial medical ID
-        generateMedicalID()
     }
     
     // MARK: - Actions
@@ -259,7 +259,9 @@ final class PatientCreationFormViewModel: Validatable {
     @MainActor
     func save() async -> Patient? {
         formState = .saving
-        
+
+        await Task.yield()
+
         // Validate form
         let validationResult = validate()
         switch validationResult {

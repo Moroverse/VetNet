@@ -28,8 +28,8 @@ enum MedicalIDGenerator {
     /// - Parameter medicalID: The medical ID to validate
     /// - Returns: True if the format is valid
     static func isValidFormat(_ medicalID: String) -> Bool {
-        // Expected format: [3 letters][6 digits][4 digits][1 letter]
-        let pattern = #"^[A-Z]{3}\d{10}[A-Z]$"#
+        // Expected format: [3 letters][6 digits][4 digits][1 letter] = 14 chars total
+        let pattern = #"^[A-Z]{3}\d{6}\d{4}[A-Z]$"#
         let regex = try? NSRegularExpression(pattern: pattern)
         let range = NSRange(location: 0, length: medicalID.count)
         return regex?.firstMatch(in: medicalID, options: [], range: range) != nil
@@ -56,10 +56,12 @@ private extension MedicalIDGenerator {
     }
 
     /// Generate sequential number from patient name
-    /// Uses hash of name to create deterministic 4-digit number
+    /// Uses hash of name combined with timestamp to create unique 4-digit number
     static func generateSequentialNumber(from name: String) -> String {
-        let hash = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines).hash
-        let positiveHash = abs(hash)
+        let nameHash = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines).hash
+        let timestampHash = Int(Date().timeIntervalSince1970 * 1000000) // Convert to microseconds for more uniqueness
+        let combinedHash = nameHash ^ timestampHash // XOR for uniqueness
+        let positiveHash = abs(combinedHash)
         let fourDigitNumber = positiveHash % 10000
         return String(format: "%04d", fourDigitNumber)
     }

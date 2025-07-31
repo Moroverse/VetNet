@@ -39,6 +39,13 @@ extension Container {
         }
     }
 
+    @MainActor
+    var patientCRUDRepository: Factory<PatientCRUDRepository> {
+        self {
+            self.patientRepository()
+        }
+    }
+
     var dateProvider: Factory<DateProvider> {
         self {
             SystemDateProvider()

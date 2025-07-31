@@ -71,6 +71,7 @@ protocol PatientPaginationRepository: Sendable {
 
 /// Complete patient repository interface composed from focused protocols
 /// Uses protocol composition to provide full functionality while maintaining ISP
+
 typealias PatientRepositoryProtocol = PatientCRUDRepository &
     PatientPaginationRepository &
     PatientSearchRepository &

@@ -8,7 +8,7 @@ let project = Project(
     name: "VetNet",
     packages: [
         .package(url: "https://github.com/Moroverse/quick-form", .branch("develop")),
-        .package(path: "Modules/SwiftUIRouting")
+        .package(path: "Modules/SwiftUIRouting"),
     ],
     targets: [
         .target(
@@ -21,30 +21,30 @@ let project = Project(
                 with: [
                     "UILaunchScreen": [
                         "UIColorName": "",
-                        "UIImageName": ""
+                        "UIImageName": "",
                     ],
                     "CFBundleDisplayName": "VetNet",
                     "NSAppTransportSecurity": [
-                        "NSAllowsArbitraryLoads": true
-                    ]
+                        "NSAllowsArbitraryLoads": true,
+                    ],
                 ]
             ),
             sources: ["App/Sources/**"],
             resources: ["App/Resources/**"],
             entitlements: .dictionary([
-//                "com.apple.developer.icloud-services": .array(["CloudKit"]),
+                //                "com.apple.developer.icloud-services": .array(["CloudKit"]),
 //                "com.apple.developer.icloud-container-identifiers": .array(["iCloud.com.moroverse.VetNet"]),
 //                "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
                 "com.apple.security.app-sandbox": true,
                 "com.apple.security.network.client": true,
-                "com.apple.security.files.user-selected.read-write": true
+                "com.apple.security.files.user-selected.read-write": true,
             ]),
             dependencies: [
                 .external(name: "FactoryKit"),
                 .package(product: "SwiftUIRouting"),
                 .external(name: "Mockable"),
                 .package(product: "QuickForm"),
-                .external(name: "StateKit")
+                .external(name: "StateKit"),
             ],
             settings:
             .settings(base: [
@@ -52,14 +52,14 @@ let project = Project(
                 "SWIFT_APPROACHABLE_CONCURRENCY": true,
                 "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
                 "SWIFT_STRICT_CONCURRENCY": "Complete",
-                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true
+                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true,
             ], configurations: [
                 .debug(
                     name: "Debug",
                     settings: [
-                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING"
+                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING",
                     ]
-                )
+                ),
             ])
         ),
         .target(
@@ -75,8 +75,18 @@ let project = Project(
                 .external(name: "Mockable"),
                 .external(name: "ViewInspector"),
                 .external(name: "FactoryTesting"),
-                .external(name: "TestKit")
-            ]
-        )
+                .external(name: "TestKit"),
+                .external(name: "ConcurrencyExtras"),
+            ],
+            settings:
+            .settings(base: [
+                "SWIFT_VERSION": "6.0",
+                "SWIFT_APPROACHABLE_CONCURRENCY": true,
+                "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
+                "SWIFT_STRICT_CONCURRENCY": "Complete",
+                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true,
+            ],
+            configurations: [])
+        ),
     ]
 )

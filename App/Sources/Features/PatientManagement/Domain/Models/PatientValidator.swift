@@ -57,7 +57,8 @@ extension PatientValidator {
             .notEmpty,
             .minLength(2),
             .maxLength(50),
-            AllowedCharactersRule(.letters.union(.whitespaces).union(.init(charactersIn: "-")))
+            AllowedCharactersRule(.letters.union(.whitespaces).union(.init(charactersIn: "-."))),
+            NotWhiteSpaceOnlyRule()
         )
     }
 
@@ -93,7 +94,6 @@ extension PatientValidator {
     }
 
     var emailValidation: AnyValidationRule<String?> {
-        // Use QuickForm's built-in email validation
         .of(OptionalRule.ifPresent(.email))
     }
 

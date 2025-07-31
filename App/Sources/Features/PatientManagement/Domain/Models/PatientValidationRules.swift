@@ -65,8 +65,16 @@ struct AllowedCharactersRule: ValidationRule {
         if filteredText.isEmpty {
             return .success
         } else {
-            return .failure("Contains invalid characters: \(filteredText)")
+            return .failure("This field contains invalid characters: \(filteredText)")
         }
+    }
+}
+
+struct NotWhiteSpaceOnlyRule: ValidationRule {
+    func validate(_ value: String) -> ValidationResult {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        ? .failure("This field contains only whitespace characters")
+        : .success
     }
 }
 

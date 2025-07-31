@@ -1,5 +1,5 @@
 {
-  "originHash" : "a899fa77ab2c0c37f32e6628a4474a608057a4217babd3661d0a431589fe6db3",
+  "originHash" : "642a8e82fe348d1fa062ce7067acaa1219834f4965686626d9d486ee7c11f1d4",
   "pins" : [
     {
       "identity" : "factory",
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Moroverse/test-kit.git",
       "state" : {
-        "revision" : "740896eb6b863e0580a75c0e2ebc17b83c6f4bad",
-        "version" : "0.3.10"
+        "branch" : "develop",
+        "revision" : "34097d4d4dbeb6592e4a85ee3afab7fe302e738d"
       }
     },
     {

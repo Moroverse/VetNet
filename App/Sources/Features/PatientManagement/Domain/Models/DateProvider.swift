@@ -3,6 +3,7 @@
 // Created by Daniel Moro on 2025-07-22 19:40 GMT.
 
 import Foundation
+import Mockable
 
 // MARK: - Date Provider Protocol
 
@@ -28,23 +29,4 @@ struct SystemDateProvider: DateProvider {
     }
 }
 
-// MARK: - Mock Date Provider
 
-/// Test implementation with fixed date/time
-struct MockDateProvider: DateProvider {
-    private let fixedDate: Date
-    private let fixedCalendar: Calendar
-
-    init(fixedDate: Date, calendar: Calendar = .current) {
-        self.fixedDate = fixedDate
-        fixedCalendar = calendar
-    }
-
-    func now() -> Date {
-        fixedDate
-    }
-
-    var calendar: Calendar {
-        fixedCalendar
-    }
-}
