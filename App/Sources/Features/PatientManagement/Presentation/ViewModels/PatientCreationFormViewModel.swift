@@ -59,7 +59,6 @@ struct PatientComponents: Sendable {
 final class PatientCreationFormViewModel: Validatable {
     
     convenience init(value: Patient) {
-        //FIXME: - create components from patient
         self.init(value: .init(patient: value))
     }
     

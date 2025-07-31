@@ -17,6 +17,14 @@ extension Container {
         }
         .singleton
     }
+    
+    @MainActor
+    var modelContainer: Factory<ModelContainer> {
+        self {
+            ModelContainer.vetNetContainer()
+        }
+        .singleton
+    }
 
     // MARK: - Patient Management
 
@@ -26,6 +34,9 @@ extension Container {
             SwiftDataPatientRepository(modelContext: self.modelContext())
         }
         .cached
+        .onDebug {
+            MockPatientRepository(behavior: .duplicateKeyError)
+        }
     }
 
     var dateProvider: Factory<DateProvider> {
@@ -55,8 +66,9 @@ extension ModelContainer {
 
         let configuration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false,
-            cloudKitDatabase: .private("VetNetSecure")
+            isStoredInMemoryOnly: false
+            // CloudKit disabled for development - uncomment when CloudKit entitlements are configured
+            // cloudKitDatabase: .private("VetNetSecure")
         )
 
         do {
