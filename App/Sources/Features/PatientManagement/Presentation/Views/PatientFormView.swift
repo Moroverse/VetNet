@@ -1,4 +1,4 @@
-// PatientCreationView.swift
+// PatientFormView.swift
 // Copyright (c) 2025 Moroverse
 // VetNet Patient Creation View
 
@@ -10,8 +10,8 @@ import StateKit
 
 // MARK: - Patient Creation View
 
-struct PatientCreationView: View {
-    @State private var viewModel: PatientCreationFormViewModel
+struct PatientFormView: View {
+    @State private var viewModel: PatientFormViewModel
     let mode: PatientFormMode
     let onResult: (PatientFormResult) -> Void
 
@@ -21,9 +21,9 @@ struct PatientCreationView: View {
     ) {
         self.mode = mode
         let viewModel = if let patient = mode.patient {
-            PatientCreationFormViewModel(value: patient)
+            PatientFormViewModel(value: patient)
         } else {
-            PatientCreationFormViewModel(value: PatientComponents())
+            PatientFormViewModel(value: PatientComponents())
         }
         self._viewModel = State(initialValue: viewModel)
         self.onResult = onResult
@@ -66,7 +66,7 @@ struct PatientCreationView: View {
 // MARK: - Patient Info Section
 
 struct PatientInfoSection: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         Section("Patient Details") {
@@ -82,7 +82,7 @@ struct PatientInfoSection: View {
 // MARK: - Owner Info Section
 
 struct OwnerInfoSection: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         Section("Owner Information") {
@@ -96,7 +96,7 @@ struct OwnerInfoSection: View {
 // MARK: - Medical Info Section
 
 struct MedicalInfoSection: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         Section("Medical Information") {
@@ -110,7 +110,7 @@ struct MedicalInfoSection: View {
 // MARK: - Individual Field Views
 
 struct PatientNameField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormTextField(viewModel.name)
@@ -119,7 +119,7 @@ struct PatientNameField: View {
 }
 
 struct PatientSpeciesField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormPickerField(viewModel.species)
@@ -128,7 +128,7 @@ struct PatientSpeciesField: View {
 }
 
 struct PatientBreedField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormPickerField(viewModel.breed)
@@ -137,7 +137,7 @@ struct PatientBreedField: View {
 }
 
 struct PatientBirthDateField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormDatePickerField(viewModel.birthDate)
@@ -146,7 +146,7 @@ struct PatientBirthDateField: View {
 }
 
 struct PatientWeightField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormValueUnitField(viewModel.weight)
@@ -155,7 +155,7 @@ struct PatientWeightField: View {
 }
 
 struct OwnerNameField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormTextField(viewModel.ownerName)
@@ -164,7 +164,7 @@ struct OwnerNameField: View {
 }
 
 struct OwnerPhoneField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormTextField(viewModel.ownerPhoneNumber)
@@ -174,7 +174,7 @@ struct OwnerPhoneField: View {
 }
 
 struct OwnerEmailField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormOptionalTextField(viewModel.ownerEmail)
@@ -184,7 +184,7 @@ struct OwnerEmailField: View {
 }
 
 struct MedicalIDField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         HStack {
@@ -201,7 +201,7 @@ struct MedicalIDField: View {
 }
 
 struct MicrochipField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormOptionalTextField(viewModel.microchipNumber)
@@ -210,7 +210,7 @@ struct MicrochipField: View {
 }
 
 struct NotesField: View {
-    @Bindable var viewModel: PatientCreationFormViewModel
+    @Bindable var viewModel: PatientFormViewModel
 
     var body: some View {
         FormTextEditor(viewModel: viewModel.notes)
@@ -220,7 +220,7 @@ struct NotesField: View {
 
 // MARK: - Form State Extensions
 
-extension PatientCreationFormState {
+extension PatientFormState {
     var isError: Bool {
         switch self {
         case .error, .validationError:
@@ -243,12 +243,12 @@ extension PatientCreationFormState {
 
 // MARK: - Preview Provider
 
-struct PatientCreationView_Previews: PreviewProvider {
+struct PatientFormView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Normal state with successful repository
             NavigationStack {
-                PatientCreationView(mode: .create) { result in
+                PatientFormView(mode: .create) { result in
                     print("Result: \(result)")
                 }
             }
@@ -256,10 +256,10 @@ struct PatientCreationView_Previews: PreviewProvider {
 
             // Edit mode
             NavigationStack {
-                PatientCreationView(mode: .edit(Patient(
+                PatientFormView(mode: .edit(Patient(
                     name: "Buddy",
                     species: .dog,
-                    breed: .dogMixed,
+                    breed: .dogLabrador,
                     birthDate: Date(),
                     weight: .init(value: 12.5, unit: .kilograms),
                     ownerName: "Alice Example",
@@ -273,10 +273,10 @@ struct PatientCreationView_Previews: PreviewProvider {
             // Preview with duplicate key error
             let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .duplicateKeyError) }
             NavigationStack {
-                PatientCreationView(mode: .edit(Patient(
+                PatientFormView(mode: .edit(Patient(
                     name: "Buddy",
                     species: .dog,
-                    breed: .dogMixed,
+                    breed: .dogLabrador,
                     birthDate: Date(),
                     weight: .init(value: 12.5, unit: .kilograms),
                     ownerName: "Alice Example",
@@ -290,7 +290,15 @@ struct PatientCreationView_Previews: PreviewProvider {
             // Preview with general error
             let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .generalError) }
             NavigationStack {
-                PatientCreationView(mode: .create) { result in
+                PatientFormView(mode: .edit(Patient(
+                    name: "Buddy",
+                    species: .dog,
+                    breed: .dogLabrador,
+                    birthDate: Date(),
+                    weight: .init(value: 12.5, unit: .kilograms),
+                    ownerName: "Alice Example",
+                    ownerPhoneNumber: "123-456-7890"
+                ))) { result in
                     print("Result: \(result)")
                 }
             }
@@ -299,7 +307,7 @@ struct PatientCreationView_Previews: PreviewProvider {
             // Preview with slow response (saving state)
             let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .slowResponse) }
             NavigationStack {
-                PatientCreationView(mode: .create) { result in
+                PatientFormView(mode: .create) { result in
                     print("Result: \(result)")
                 }
             }

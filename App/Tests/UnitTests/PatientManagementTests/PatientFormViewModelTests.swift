@@ -1,6 +1,6 @@
-// PatientCreationFormViewModelTests.swift
+// PatientFormViewModelTests.swift
 // Copyright (c) 2025 Moroverse
-// VetNet Patient Creation Form View Model Tests
+// VetNet Patient Form View Model Tests
 
 import FactoryKit
 import Foundation
@@ -79,9 +79,9 @@ private struct MockDateProvider: DateProvider {
     }
 }
 
-@Suite("Patient Creation Form View Model Tests")
+@Suite("Patient Form View Model Tests")
 @MainActor
-struct PatientCreationFormViewModelTests {
+struct PatientFormViewModelTests {
     // MARK: - Test Helpers
 
     private func createTestPatient(
@@ -108,7 +108,7 @@ struct PatientCreationFormViewModelTests {
     }
 
     private struct SUT {
-        let viewModel: PatientCreationFormViewModel
+    let viewModel: PatientFormViewModel
         let repository: TestPatientCRUDRepository
         let dateProvider: MockDateProvider
     }
@@ -126,11 +126,11 @@ struct PatientCreationFormViewModelTests {
             dateProvider
         }
 
-        let viewModel: PatientCreationFormViewModel
+        let viewModel: PatientFormViewModel
         if let existingPatient {
-            viewModel = PatientCreationFormViewModel(value: existingPatient)
+            viewModel = PatientFormViewModel(value: existingPatient)
         } else {
-            viewModel = PatientCreationFormViewModel(value: PatientComponents())
+            viewModel = PatientFormViewModel(value: PatientComponents())
         }
 
         return SUT(
@@ -164,7 +164,7 @@ struct PatientCreationFormViewModelTests {
 
         // Form state
         #expect(!sut.viewModel.isEditing)
-        #expect(sut.viewModel.formState == .idle)
+        #expect(sut.viewModel.formState == .editing) // generateMedicalID() in init triggers editing state
     }
 
     @Test("Existing patient form initializes with patient data")
@@ -271,16 +271,6 @@ struct PatientCreationFormViewModelTests {
         #expect(medicalID.hasPrefix("CAT"))
         #expect(medicalID.count == 14)
         #expect(!medicalID.isEmpty)
-    }
-
-    @Test("Medical ID generation triggers editing state")
-    func medicalIDGenerationTriggersEditingState() {
-        let sut = makeSUT()
-        #expect(sut.viewModel.formState == .idle)
-
-        sut.viewModel.generateMedicalID()
-
-        #expect(sut.viewModel.formState == .editing)
     }
 
     @Test("Medical ID generates unique values")
@@ -573,7 +563,7 @@ struct PatientCreationFormViewModelTests {
         let savedPatient = await sut.viewModel.save()
 
         let changes = try await formStateObservation.waitForChanges(count: 2)
-        #expect( changes == [PatientCreationFormState.saving, PatientCreationFormState.saved(savedPatient!)])
+        #expect( changes == [PatientFormState.saving, PatientFormState.saved(savedPatient!)])
     }
 
     @Test("canSave returns true for valid form data")

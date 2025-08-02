@@ -1,6 +1,6 @@
-// PatientCreationFormViewModel.swift
+// PatientFormViewModel.swift
 // Copyright (c) 2025 Moroverse
-// VetNet Patient Creation Form View Model
+// VetNet Patient Form View Model
 
 import FactoryKit
 import Foundation
@@ -8,7 +8,7 @@ import QuickForm
 
 // MARK: - Form State
 
-enum PatientCreationFormState: Equatable {
+enum PatientFormState: Equatable {
     case idle
     case editing
     case saving
@@ -53,10 +53,10 @@ struct PatientComponents: Sendable {
     }
 }
 
-// MARK: - Patient Creation Form View Model
+// MARK: - Patient Form View Model
 
 @QuickForm(PatientComponents.self)
-final class PatientCreationFormViewModel: Validatable {
+final class PatientFormViewModel: Validatable {
     
     convenience init(value: Patient) {
         self.init(value: .init(patient: value))
@@ -88,7 +88,7 @@ final class PatientCreationFormViewModel: Validatable {
     @PropertyEditor(keyPath: \PatientComponents.breed)
     var breed = PickerFieldViewModel(
         value: Breed.dogMixed,
-        allValues: Breed.allCases,
+        allValues: Species.dog.availableBreeds, // Start with dog breeds as default
         title: "Breed"
     )
     
@@ -154,7 +154,7 @@ final class PatientCreationFormViewModel: Validatable {
     // MARK: - State
     
     @StateObserved
-    private(set) var formState: PatientCreationFormState = .idle
+    private(set) var formState: PatientFormState = .idle
 
     var isEditing: Bool {
         value.id != nil
@@ -168,7 +168,11 @@ final class PatientCreationFormViewModel: Validatable {
         if isEditing {
             name.value = value.name
             species.value = value.species
+            
+            // Set breed options for the patient's species before setting breed value
+            breed.allValues = value.species.availableBreeds
             breed.value = value.breed
+            
             birthDate.value = value.birthDate
             weight.value = value.weight
             ownerName.value = value.ownerName
@@ -178,7 +182,9 @@ final class PatientCreationFormViewModel: Validatable {
             microchipNumber.value = value.microchipNumber
             notes.value = value.notes
         } else {
-            medicalID.value = MedicalIDGenerator.generateID(for: species.value, name: name.value.isEmpty ? "Patient" : name.value)
+            // For new patients, ensure breed options match default species (dog)
+            breed.allValues = species.value.availableBreeds
+            generateMedicalID()
         }
 
         let validator = PatientValidator(dateProvider: dateProvider)
@@ -195,10 +201,21 @@ final class PatientCreationFormViewModel: Validatable {
         // Note: PickerFieldViewModel doesn't support validation
         // Breed validation is handled at form level in validate() method
         
-        // Update weight validation when species changes
-        species.onValueChanged { [weak self] newValue in
+        // Update weight validation and breed options when species changes
+        species.onValueChanged { [weak self] newSpecies in
             guard let self else { return }
-            weight.validation = validator.weightValidation(for: newValue)
+            
+            // Update weight validation for new species
+            weight.validation = validator.weightValidation(for: newSpecies)
+            
+            // Update available breed options based on species
+            breed.allValues = newSpecies.availableBreeds
+            
+            // Reset breed selection if current breed is not valid for new species
+            if !newSpecies.availableBreeds.contains(breed.value) {
+                breed.value = newSpecies.availableBreeds.first ?? .dogMixed
+            }
+            
             formState = .editing
         }
         

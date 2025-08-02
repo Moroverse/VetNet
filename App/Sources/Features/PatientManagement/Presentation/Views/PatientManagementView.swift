@@ -29,7 +29,7 @@ struct PatientManagementView: View {
             }
         } formContent: { mode in
             NavigationStack {
-                PatientCreationView(mode: mode) { result in
+                PatientFormView(mode: mode) { result in
                     router.handleResult(result)
                 }
             }
