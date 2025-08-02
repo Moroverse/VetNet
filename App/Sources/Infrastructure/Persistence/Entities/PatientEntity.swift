@@ -10,23 +10,63 @@ import SwiftData
 /// SwiftData persistence entity for Patient domain model
 /// Located in Infrastructure layer to isolate persistence concerns from domain logic
 /// 
-/// Note: CloudKit integration requires:
-/// - All properties must be optional or have default values
-/// - No unique constraints are allowed
-/// - Uniqueness is enforced at the repository level instead
+/// ## CloudKit Integration Requirements
+/// 
+/// CloudKit synchronization imposes specific constraints on SwiftData models:
+/// - All properties must be optional or have default values for CloudKit compatibility
+/// - @Attribute(.unique) constraints are NOT supported with CloudKit enabled
+/// - Uniqueness validation must be enforced at the repository layer instead
+/// 
+/// ## Uniqueness Enforcement Strategy
+/// 
+/// Although we cannot use @Attribute(.unique) with CloudKit, the following fields
+/// require uniqueness and are validated in SwiftDataPatientRepository:
+/// - `medicalID`: Must be unique across all patients in the practice
+/// - Future: `(practiceID, medicalID)` compound key when multi-practice support is added
+/// 
+/// ## HIPAA Compliance
+/// 
+/// Patient data is synchronized to CloudKit private database with:
+/// - Custom zone "VetNetSecure" for data isolation
+/// - End-to-end encryption for PHI (Protected Health Information)
+/// - Audit trail logging at repository level for all data access
+/// 
+/// ## Future Relationships
+/// 
+/// When related entities are implemented, the following relationships will be added:
+/// - `owner`: Many-to-one relationship with OwnerEntity
+/// - `appointments`: One-to-many relationship with AppointmentEntity
+/// - `medicalRecords`: One-to-many relationship with MedicalRecordEntity
+/// - `practice`: Many-to-one relationship with PracticeEntity (for multi-practice support)
 @Model
 final class PatientEntity {
     // MARK: - Identity
 
+    /// UUID string representation of Patient.ID
+    /// Stored as String for CloudKit compatibility
     var id: String = ""
 
     // MARK: - Basic Information
 
+    /// Patient's name - required field
     var name: String = ""
+    
+    /// Raw value of Species enum - stored as String for CloudKit
+    /// Maps to Species enum in domain model
     var speciesRawValue: String = "dog"
+    
+    /// Raw value of Breed enum - stored as String for CloudKit
+    /// Maps to Breed enum in domain model, validated against species
     var breedRawValue: String = "mixed"
+    
+    /// Date of birth - used for age calculations
     var birthDate: Date = Date()
+    
+    /// Weight value component - combined with weightUnitSymbol
+    /// Forms Measurement<UnitMass> in domain model
     var weightValue: Double = 0.0
+    
+    /// Weight unit symbol (kg, g, lb, oz) - combined with weightValue
     var weightUnitSymbol: String = "kg"
 
     // MARK: - Owner Information
@@ -51,6 +91,20 @@ final class PatientEntity {
     /// CloudKit record zone for HIPAA compliance
     /// Custom zone enables proper access control and data isolation
     var cloudKitZone: String?
+
+    // MARK: - Future Relationships (To Be Implemented)
+    
+    // When OwnerEntity is created:
+    // @Relationship(inverse: \OwnerEntity.patients) var owner: OwnerEntity?
+    
+    // When AppointmentEntity is created:
+    // @Relationship(deleteRule: .nullify) var appointments: [AppointmentEntity] = []
+    
+    // When MedicalRecordEntity is created:
+    // @Relationship(deleteRule: .cascade) var medicalRecords: [MedicalRecordEntity] = []
+    
+    // When PracticeEntity is created (for multi-practice support):
+    // @Relationship(inverse: \PracticeEntity.patients) var practice: PracticeEntity?
 
     // MARK: - Initialization
 

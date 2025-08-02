@@ -80,7 +80,7 @@ typealias PatientRepositoryProtocol = PatientCRUDRepository &
 // MARK: - Repository Error
 
 /// Errors that can occur during repository operations
-enum RepositoryError: Error, Sendable {
+nonisolated enum RepositoryError: Error, Sendable {
     case notFound
     case duplicateKey(String)
     case validationFailed([String])
@@ -90,7 +90,7 @@ enum RepositoryError: Error, Sendable {
 
 // MARK: - Repository Error Extensions
 
-extension RepositoryError: LocalizedError {
+extension RepositoryError: LocalizedError, Equatable {
     nonisolated var errorDescription: String? {
         switch self {
         case .notFound:
