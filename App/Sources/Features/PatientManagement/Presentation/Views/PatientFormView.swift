@@ -12,6 +12,7 @@ import StateKit
 
 struct PatientFormView: View {
     @State private var viewModel: PatientFormViewModel
+    @State private var showingAlert = false
     let mode: PatientFormMode
     let onResult: (PatientFormResult) -> Void
 
@@ -53,9 +54,26 @@ struct PatientFormView: View {
                 .accessibilityIdentifier("patient_creation_save_button")
             }
         }
-        .alert("Error", isPresented: .constant(viewModel.formState.isError)) {
-            Button("OK") {
-                // State will be managed by view model based on user actions
+        .onChange(of: viewModel.formState.isError) { _, isError in
+            showingAlert = isError
+        }
+        .alert("Error", isPresented: $showingAlert) {
+            if viewModel.formState.isRetryable {
+                Button("Retry") {
+                    Task {
+                        if let patient = await viewModel.retry() {
+                            let result: PatientFormResult = viewModel.isEditing ? .updated(patient) : .created(patient)
+                            onResult(result)
+                        }
+                    }
+                }
+                Button("Cancel") {
+                    viewModel.clearError()
+                }
+            } else {
+                Button("OK") {
+                    viewModel.clearError()
+                }
             }
         } message: {
             Text(viewModel.formState.errorMessage ?? "An unknown error occurred")
@@ -218,29 +236,6 @@ struct NotesField: View {
     }
 }
 
-// MARK: - Form State Extensions
-
-extension PatientFormState {
-    var isError: Bool {
-        switch self {
-        case .error, .validationError:
-            true
-        default:
-            false
-        }
-    }
-
-    var errorMessage: String? {
-        switch self {
-        case let .error(message), let .validationError(message):
-            message
-        default:
-            nil
-        }
-    }
-}
-
-
 // MARK: - Preview Provider
 
 struct PatientFormView_Previews: PreviewProvider {
@@ -271,7 +266,7 @@ struct PatientFormView_Previews: PreviewProvider {
             .previewDisplayName("Edit Mode")
 
             // Preview with duplicate key error
-            let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .duplicateKeyError) }
+            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .duplicateKeyError) }
             NavigationStack {
                 PatientFormView(mode: .edit(Patient(
                     name: "Buddy",
@@ -288,7 +283,7 @@ struct PatientFormView_Previews: PreviewProvider {
             .previewDisplayName("Duplicate Key Error")
 
             // Preview with general error
-            let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .generalError) }
+            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .generalError) }
             NavigationStack {
                 PatientFormView(mode: .edit(Patient(
                     name: "Buddy",
@@ -305,9 +300,17 @@ struct PatientFormView_Previews: PreviewProvider {
             .previewDisplayName("General Error")
 
             // Preview with slow response (saving state)
-            let _ = Container.shared.patientRepository.register { MockPatientRepository(behavior: .slowResponse) }
+            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .slowResponse) }
             NavigationStack {
-                PatientFormView(mode: .create) { result in
+                PatientFormView(mode: .edit(Patient(
+                    name: "Buddy",
+                    species: .dog,
+                    breed: .dogLabrador,
+                    birthDate: Date(),
+                    weight: .init(value: 12.5, unit: .kilograms),
+                    ownerName: "Alice Example",
+                    ownerPhoneNumber: "123-456-7890"
+                ))){ result in
                     print("Result: \(result)")
                 }
             }

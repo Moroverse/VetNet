@@ -190,3 +190,75 @@ This is a greenfield iOS project with comprehensive architecture documentation a
 - **Formatting**: Prefer FormatStyle API for all formatting needs (dates, measurements, currency)
 - **Measurements**: Use Swift's Measurement API with proper units for all veterinary calculations
 - See @docs/architecture/swift-best-practices.md for comprehensive patterns and examples
+
+## Session Learnings
+
+This section captures valuable insights, patterns, and solutions discovered during development sessions. Each entry includes the date and context for future reference.
+
+### 2025-08-03: Alert Implementation & Preview Fixes
+
+**QuickForm Framework Improvements**:
+- Fixed `onValueChanged` behavior to only trigger on meaningful value changes (not focus changes)
+- This resolved SwiftUI alert dismissal issues where alerts would immediately close when text fields lost focus
+- QuickForm now properly distinguishes between value changes and UI state changes
+
+**FactoryKit Dependency Injection Patterns**:
+```swift
+// Correct preview mock registration pattern
+let _ = Container.shared.serviceName.register { MockImplementation() }
+
+// Register on the specific service the component uses (e.g., patientCRUDRepository, not patientRepository)
+// Use proper FactoryKit syntax for preview overrides
+```
+
+**StateKit Paginated Type Usage**:
+```swift
+// StateKit's Paginated structure
+Paginated(items: [Item], loadMore: LoadMoreCompletion?)
+// - items: Array of items for current page
+// - loadMore: Optional closure for loading additional pages
+// - Conforms to Collection protocol for easy iteration
+```
+
+**SwiftUI Alert State Management Best Practices**:
+```swift
+// Use @State for alert presentation control
+@State private var showingAlert = false
+
+// Watch for error state changes
+.onChange(of: viewModel.formState.isError) { _, isError in
+    showingAlert = isError
+}
+
+// Provide different actions based on error type
+.alert("Error", isPresented: $showingAlert) {
+    if viewModel.formState.isRetryable {
+        Button("Retry") { /* retry logic */ }
+        Button("Cancel") { viewModel.clearError() }
+    } else {
+        Button("OK") { viewModel.clearError() }
+    }
+}
+```
+
+**Enhanced Error State Management**:
+```swift
+// Include retry capability in error states
+enum FormState {
+    case error(String, isRetryable: Bool = true)
+    // Non-retryable: duplicate key errors (user must fix)
+    // Retryable: network/database errors (can retry same operation)
+}
+```
+
+**Repository Mock Implementation Guidelines**:
+- Mock repositories should implement ALL protocol methods, not just CRUD
+- Use `#if DEBUG` wrapper for preview-only mocks
+- Support multiple behaviors (success, various error types, slow response)
+- Properly handle StateKit types like `Paginated`
+- Use correct `RepositoryError` enum cases (e.g., `.notFound` has no associated value)
+
+**File Organization Insights**:
+- Preview mocks belong in `Infrastructure/Mocks/` directory
+- Use descriptive behavior enums for different test scenarios
+- Keep mock implementations focused and lightweight

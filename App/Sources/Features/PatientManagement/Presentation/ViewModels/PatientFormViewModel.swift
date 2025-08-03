@@ -13,8 +13,35 @@ enum PatientFormState: Equatable {
     case editing
     case saving
     case saved(Patient)
-    case error(String)
+    case error(String, isRetryable: Bool = true)
     case validationError(String)
+    
+    var isError: Bool {
+        switch self {
+        case .error, .validationError:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    var errorMessage: String? {
+        switch self {
+        case let .error(message, _), let .validationError(message):
+            return message
+        default:
+            return nil
+        }
+    }
+    
+    var isRetryable: Bool {
+        switch self {
+        case .error(_, let retryable):
+            return retryable
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - Form Components
@@ -273,6 +300,17 @@ final class PatientFormViewModel: Validatable {
         formState = .editing
     }
     
+    func clearError() {
+        if formState.isError {
+            formState = .editing
+        }
+    }
+    
+    func retry() async -> Patient? {
+        guard formState.isRetryable else { return nil }
+        return await save()
+    }
+    
     @MainActor
     func save() async -> Patient? {
         formState = .saving
@@ -338,10 +376,10 @@ final class PatientFormViewModel: Validatable {
             }
             
         } catch RepositoryError.duplicateKey(let key) {
-            formState = .error("A patient with \(key) already exists. Please use a different medical ID.")
+            formState = .error("A patient with \(key) already exists. Please use a different medical ID.", isRetryable: false)
             return nil
         } catch {
-            formState = .error("Failed to save patient: \(error.localizedDescription)")
+            formState = .error("Failed to save patient: \(error.localizedDescription)", isRetryable: true)
             return nil
         }
     }

@@ -71,10 +71,6 @@ extension Container {
             return SwiftDataPatientRepository(modelContext: context)
         }
         .cached
-        .onDebug {
-            // Enhanced mock behavior for different testing scenarios
-            MockPatientRepository(behavior: .success)
-        }
     }
 
     /// CRUD-specific patient repository interface

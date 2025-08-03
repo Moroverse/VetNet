@@ -499,9 +499,10 @@ struct PatientFormViewModelTests {
         #expect(savedPatient == nil)
 
         // Verify form state shows error
-        if case let .error(message) = sut.viewModel.formState {
+        if case let .error(message, isRetryable) = sut.viewModel.formState {
             #expect(message.contains("already exists"))
             #expect(message.contains("medical ID"))
+            #expect(isRetryable == false) // Duplicate key errors should not be retryable
         } else {
             Issue.record("Expected error state for duplicate key")
         }
@@ -533,8 +534,9 @@ struct PatientFormViewModelTests {
         #expect(savedPatient == nil)
 
         // Verify form state shows error
-        if case let .error(message) = sut.viewModel.formState {
+        if case let .error(message, isRetryable) = sut.viewModel.formState {
             #expect(message.contains("Failed to save patient"))
+            #expect(isRetryable == true) // General errors should be retryable
         } else {
             Issue.record("Expected error state for database error")
         }
@@ -658,5 +660,110 @@ struct PatientFormViewModelTests {
         #expect(savedPatient?.ownerEmail == nil)
         #expect(savedPatient?.microchipNumber == nil)
         #expect(savedPatient?.notes == nil)
+    }
+    
+    // MARK: - Error Management Tests
+    
+    @Test("clearError changes error state to editing")
+    func clearErrorChangesStateToEditing() async {
+        let sut = makeSUT()
+        
+        // Set up valid patient data
+        sut.viewModel.name.value = "Max"
+        sut.viewModel.species.value = .dog
+        sut.viewModel.breed.value = .dogLabrador
+        sut.viewModel.birthDate.value = Date().addingTimeInterval(-365 * 24 * 60 * 60)
+        sut.viewModel.weight.value = Measurement(value: 25, unit: .kilograms)
+        sut.viewModel.ownerName.value = "John Doe"
+        sut.viewModel.ownerPhoneNumber.value = "(123) 456-7890"
+        
+        // Configure repository to throw error
+        sut.repository.createThrowableError = RepositoryError.databaseError("Connection failed")
+        
+        // Try to save to get into error state
+        _ = await sut.viewModel.save()
+        
+        // Verify we're in error state
+        #expect(sut.viewModel.formState.isError)
+        
+        // Clear the error
+        sut.viewModel.clearError()
+        
+        // Verify state changed to editing
+        #expect(sut.viewModel.formState == .editing)
+    }
+    
+    @Test("clearError does nothing when not in error state")
+    func clearErrorDoesNothingWhenNotInErrorState() {
+        let sut = makeSUT()
+        
+        // Verify initial state
+        #expect(sut.viewModel.formState == .editing)
+        
+        // Clear error when not in error state
+        sut.viewModel.clearError()
+        
+        // Verify state unchanged
+        #expect(sut.viewModel.formState == .editing)
+    }
+    
+    @Test("retry attempts save again for retryable errors")
+    func retryAttemptsSaveAgainForRetryableErrors() async {
+        let sut = makeSUT()
+        
+        // Set up valid patient data
+        sut.viewModel.name.value = "Max"
+        sut.viewModel.species.value = .dog
+        sut.viewModel.breed.value = .dogLabrador
+        sut.viewModel.birthDate.value = Date().addingTimeInterval(-365 * 24 * 60 * 60)
+        sut.viewModel.weight.value = Measurement(value: 25, unit: .kilograms)
+        sut.viewModel.ownerName.value = "John Doe"
+        sut.viewModel.ownerPhoneNumber.value = "(123) 456-7890"
+        
+        // Configure repository to throw error first time, succeed second time
+        sut.repository.createThrowableError = RepositoryError.databaseError("Connection failed")
+        
+        // Try to save to get into error state
+        let firstResult = await sut.viewModel.save()
+        #expect(firstResult == nil)
+        #expect(sut.viewModel.formState.isRetryable)
+        
+        // Clear the error so retry can succeed
+        sut.repository.createThrowableError = nil
+        
+        // Retry the operation
+        let retryResult = await sut.viewModel.retry()
+        
+        // Verify retry succeeded
+        #expect(retryResult != nil)
+        #expect(sut.repository.createCallCount == 2) // Both original and retry attempts
+    }
+    
+    @Test("retry returns nil for non-retryable errors")
+    func retryReturnsNilForNonRetryableErrors() async {
+        let sut = makeSUT()
+        
+        // Set up valid patient data
+        sut.viewModel.name.value = "Max"
+        sut.viewModel.species.value = .dog
+        sut.viewModel.breed.value = .dogLabrador
+        sut.viewModel.birthDate.value = Date().addingTimeInterval(-365 * 24 * 60 * 60)
+        sut.viewModel.weight.value = Measurement(value: 25, unit: .kilograms)
+        sut.viewModel.ownerName.value = "John Doe"
+        sut.viewModel.ownerPhoneNumber.value = "(123) 456-7890"
+        
+        // Configure repository to throw non-retryable error
+        sut.repository.createThrowableError = RepositoryError.duplicateKey("medicalID: DOG123456789")
+        
+        // Try to save to get into error state
+        _ = await sut.viewModel.save()
+        #expect(!sut.viewModel.formState.isRetryable)
+        
+        // Try to retry
+        let retryResult = await sut.viewModel.retry()
+        
+        // Verify retry did nothing
+        #expect(retryResult == nil)
+        #expect(sut.repository.createCallCount == 1) // Only original attempt
     }
 }
