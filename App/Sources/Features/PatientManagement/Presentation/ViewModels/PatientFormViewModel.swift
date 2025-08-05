@@ -372,7 +372,6 @@ final class PatientFormViewModel: Validatable {
                 formState = .saved(savedPatient)
                 return savedPatient
             }
-
         } catch let RepositoryError.duplicateKey(key) {
             formState = .error("A patient with \(key) already exists. Please use a different medical ID.", isRetryable: false)
             return nil
