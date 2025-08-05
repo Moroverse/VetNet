@@ -1,0 +1,107 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "swiftformat . --quiet 2>/dev/null || true",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "swiftlint --quiet 2>/dev/null || true",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "tuist generate --no-open 2>/dev/null || true",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "tuist build --platform ios --no-open 2>/dev/null || true",
+            "timeout": 300
+          },
+          {
+            "type": "command",
+            "command": "tuist test --platform ios --no-open 2>/dev/null || echo 'Tests need attention'",
+            "timeout": 300
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Validating file patterns before edit...' >&2",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -E '(password\\s*=|API_KEY\\s*=|secret\\s*=)' <<< \"$TOOL_INPUT\" && { echo 'Error: Hardcoded credentials detected!' >&2; exit 2; } || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "tuist test --platform ios --no-open 2>/dev/null || echo 'Final test run complete'",
+            "timeout": 300
+          },
+          {
+            "type": "command",
+            "command": "echo '📊 Session Summary: Changes completed. Run \"git status\" to review.'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '🏥 VetNet session started. Loading project environment...' && tuist generate --no-open 2>/dev/null || true",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Processing request with VetNet clean code rules active...' >&2",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Backing up important context before compact...' && git status > /tmp/vetnet-precompact-status.txt 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

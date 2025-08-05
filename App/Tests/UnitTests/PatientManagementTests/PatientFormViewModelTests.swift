@@ -214,7 +214,7 @@ struct PatientFormViewModelTests {
     // MARK: - Medical ID Generation Tests
 
     @Test("Medical ID generates with correct format for dogs")
-    func medicalIDGenerationForDogs() {
+    func medicalIDGenerationForDogs() throws {
         let sut = makeSUT()
 
         sut.viewModel.species.value = .dog
@@ -231,7 +231,7 @@ struct PatientFormViewModelTests {
         let checkDigit = String(afterPrefix.suffix(1))
 
         #expect(dateAndSequence.count == 10) // 6 (YYYYMM) + 4 (sequence)
-        #expect(dateAndSequence.allSatisfy(\.isNumber))
+        #expect(try dateAndSequence.allSatisfy(\.isNumber))
         #expect(checkDigit.count == 1)
         #expect(checkDigit.first?.isLetter == true)
     }
@@ -254,7 +254,7 @@ struct PatientFormViewModelTests {
         let checkDigit = String(afterPrefix.suffix(1))
 
         #expect(dateAndSequence.count == 10) // 6 (YYYYMM) + 4 (sequence)
-        #expect(dateAndSequence.allSatisfy(\.isNumber))
+        #expect(try dateAndSequence.allSatisfy(\.isNumber))
         #expect(checkDigit.count == 1)
         #expect(checkDigit.first?.isLetter == true)
     }

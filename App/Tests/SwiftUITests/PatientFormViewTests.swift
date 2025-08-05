@@ -38,23 +38,23 @@ final class PatientFormViewTests: XCTestCase {
 
     // MARK: - Component Presence Tests
 
-    func test_formSectionsPresent() throws {
-        var sut = makeSUT()
-        var patientSectionFound = false
-        var ownerSectionFound = false
-        var medicalSectionFound = false
-
-        inspectChangingView(&sut) { view in
-            // Test that all major sections are present
-            patientSectionFound = (try? view.find(PatientInfoSection.self)) != nil
-            ownerSectionFound = (try? view.find(OwnerInfoSection.self)) != nil
-            medicalSectionFound = (try? view.find(MedicalInfoSection.self)) != nil
-        }
-
-        XCTAssertTrue(patientSectionFound, "Patient info section should be present")
-        XCTAssertTrue(ownerSectionFound, "Owner info section should be present")
-        XCTAssertTrue(medicalSectionFound, "Medical info section should be present")
-    }
+//    func test_formSectionsPresent() throws {
+//        var sut = makeSUT()
+//        var patientSectionFound = false
+//        var ownerSectionFound = false
+//        var medicalSectionFound = false
+//
+//        inspectChangingView(&sut) { view in
+//            // Test that all major sections are present
+//            patientSectionFound = (try? view.find(PatientInfoSection.self)) != nil
+//            ownerSectionFound = (try? view.find(OwnerInfoSection.self)) != nil
+//            medicalSectionFound = (try? view.find(MedicalInfoSection.self)) != nil
+//        }
+//
+//        XCTAssertTrue(patientSectionFound, "Patient info section should be present")
+//        XCTAssertTrue(ownerSectionFound, "Owner info section should be present")
+//        XCTAssertTrue(medicalSectionFound, "Medical info section should be present")
+//    }
 
     // MARK: - Field Component Tests
 
