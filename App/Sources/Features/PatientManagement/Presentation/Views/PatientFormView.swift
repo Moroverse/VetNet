@@ -247,7 +247,7 @@ struct PatientFormView_Previews: PreviewProvider {
             // Normal state with successful repository
             NavigationStack {
                 PatientFormView(mode: .create) { result in
-                    print("Result: \(result)")
+                    Container.shared.loggingService().debug("Preview result: \(result)", category: .development)
                 }
             }
             .previewDisplayName("Create Mode")
@@ -263,7 +263,7 @@ struct PatientFormView_Previews: PreviewProvider {
                     ownerName: "Alice Example",
                     ownerPhoneNumber: "123-456-7890"
                 ))) { result in
-                    print("Result: \(result)")
+                    Container.shared.loggingService().debug("Preview result: \(result)", category: .development)
                 }
             }
             .previewDisplayName("Edit Mode")
@@ -280,7 +280,7 @@ struct PatientFormView_Previews: PreviewProvider {
                     ownerName: "Alice Example",
                     ownerPhoneNumber: "123-456-7890"
                 ))) { result in
-                    print("Result: \(result)")
+                    Container.shared.loggingService().debug("Preview result: \(result)", category: .development)
                 }
             }
             .previewDisplayName("Duplicate Key Error")
@@ -297,7 +297,7 @@ struct PatientFormView_Previews: PreviewProvider {
                     ownerName: "Alice Example",
                     ownerPhoneNumber: "123-456-7890"
                 ))) { result in
-                    print("Result: \(result)")
+                    Container.shared.loggingService().debug("Preview result: \(result)", category: .development)
                 }
             }
             .previewDisplayName("General Error")
@@ -314,7 +314,7 @@ struct PatientFormView_Previews: PreviewProvider {
                     ownerName: "Alice Example",
                     ownerPhoneNumber: "123-456-7890"
                 ))) { result in
-                    print("Result: \(result)")
+                    Container.shared.loggingService().debug("Preview result: \(result)", category: .development)
                 }
             }
             .previewDisplayName("Slow Response")

@@ -35,14 +35,15 @@ struct VetNetApp: App {
     private func initializeConfiguration() {
         // Ensure feature flags are properly initialized
         let featureFlagService = Container.shared.featureFlagService()
+        let logger = Container.shared.loggingService()
 
         // Log current configuration in debug mode
         #if DEBUG
-            print("🚀 VetNet starting up...")
-            print("📊 Patient Management V1: \(featureFlagService.isEnabled(.patientManagementV1) ? "enabled" : "disabled")")
-            print("🔧 Mock Data: \(featureFlagService.isEnabled(.useMockData) ? "enabled" : "disabled")")
-            print("☁️ CloudKit Sync: \(featureFlagService.isEnabled(.cloudKitSync) ? "enabled" : "disabled")")
-            print("✨ Liquid Glass UI: \(featureFlagService.isEnabled(.liquidGlassUI) ? "enabled" : "disabled")")
+            logger.info("VetNet starting up...", category: .app)
+            logger.info("Patient Management V1: \(featureFlagService.isEnabled(.patientManagementV1) ? "enabled" : "disabled")", category: .app)
+            logger.info("Mock Data: \(featureFlagService.isEnabled(.useMockData) ? "enabled" : "disabled")", category: .development)
+            logger.info("CloudKit Sync: \(featureFlagService.isEnabled(.cloudKitSync) ? "enabled" : "disabled")", category: .cloudKit)
+            logger.info("Liquid Glass UI: \(featureFlagService.isEnabled(.liquidGlassUI) ? "enabled" : "disabled")", category: .ui)
 
             // Initialize development configuration
             Task {

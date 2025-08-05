@@ -74,7 +74,7 @@ extension Container {
     @MainActor
     var modelContainer: Factory<ModelContainer> {
         self {
-            return ModelContainer.vetNetContainer()
+            ModelContainer.vetNetContainer()
         }
         .singleton
     }
@@ -131,7 +131,7 @@ extension Container {
     @MainActor
     var patientValidator: Factory<PatientValidator> {
         self {
-            return PatientValidator(dateProvider: self.dateProvider())
+            PatientValidator(dateProvider: self.dateProvider())
         }
         .cached
     }
@@ -160,13 +160,13 @@ extension Container {
     @MainActor
     var featureFlagService: Factory<FeatureFlagService> {
         self {
-            return UserDefaultsFeatureFlagService()
+            UserDefaultsFeatureFlagService()
         }
         .onDebug {
             if ProcessInfo.processInfo.environment["USE_DEBUG_FEATURE_FLAGS"] != nil {
-                return DebugFeatureFlagService()
+                DebugFeatureFlagService()
             } else {
-                return UserDefaultsFeatureFlagService()
+                UserDefaultsFeatureFlagService()
             }
         }
         .cached

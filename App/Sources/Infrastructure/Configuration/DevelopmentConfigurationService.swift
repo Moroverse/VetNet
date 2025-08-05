@@ -14,6 +14,8 @@ final class DevelopmentConfigurationService: Sendable {
     @Injected(\.featureFlagService) private var featureFlagService
     @ObservationIgnored
     @Injected(\.dataSeedingService) private var dataSeedingService
+    @ObservationIgnored
+    @Injected(\.loggingService) private var logger
 
     var isConfigured = false
     var sampleDataSeeded = false
@@ -57,12 +59,12 @@ final class DevelopmentConfigurationService: Sendable {
         do {
             sampleDataSeeded = try await dataSeedingService.isSampleDataSeeded()
         } catch {
-            print("⚠️ Failed to check sample data status: \(error)")
+            logger.warning("Failed to check sample data status: \(error)", category: .development)
             sampleDataSeeded = false
         }
 
         isConfigured = true
-        print("🔧 Development configuration initialized")
+        logger.info("Development configuration initialized", category: .development)
     }
 
     /// Toggle between mock and real data
@@ -71,7 +73,7 @@ final class DevelopmentConfigurationService: Sendable {
         featureFlagService.setEnabled(.useMockData, !currentValue)
         updateCurrentFlags()
 
-        print("🔄 Mock data toggle: \(!currentValue ? "enabled" : "disabled")")
+        logger.info("Mock data toggle: \(!currentValue ? "enabled" : "disabled")", category: .development)
     }
 
     /// Seed sample data
@@ -82,7 +84,7 @@ final class DevelopmentConfigurationService: Sendable {
                 sampleDataSeeded = true
             }
         } catch {
-            print("❌ Failed to seed sample data: \(error)")
+            logger.error("Failed to seed sample data: \(error)", category: .development)
         }
     }
 
@@ -94,7 +96,7 @@ final class DevelopmentConfigurationService: Sendable {
                 sampleDataSeeded = false
             }
         } catch {
-            print("❌ Failed to clear sample data: \(error)")
+            logger.error("Failed to clear sample data: \(error)", category: .development)
         }
     }
 

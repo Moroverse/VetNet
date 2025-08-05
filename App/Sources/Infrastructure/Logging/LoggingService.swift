@@ -1,6 +1,6 @@
 // LoggingService.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-05 06:18 GMT.
+// Created by Daniel Moro on 2025-08-05 06:57 GMT.
 
 import Foundation
 import OSLog
@@ -17,8 +17,8 @@ protocol LoggingService: Sendable {
 }
 
 // MARK: - Log Categories
-nonisolated
-enum LogCategory: String, CaseIterable {
+
+nonisolated enum LogCategory: String, CaseIterable {
     case app = "App"
     case ui = "UI"
     case data = "Data"
@@ -66,8 +66,8 @@ extension LoggingService {
 }
 
 // MARK: - System Logger Implementation
-nonisolated
-final class SystemLoggingService: LoggingService {
+
+final nonisolated class SystemLoggingService: LoggingService {
     private let loggers: [LogCategory: Logger]
     private let defaultLogger: Logger
 

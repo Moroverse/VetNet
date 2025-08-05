@@ -9,6 +9,7 @@ import Foundation
 
 final class DataSeedingService: Sendable {
     @Injected(\.patientRepository) private var patientRepository
+    @Injected(\.loggingService) private var logger
 
     // MARK: - Public Interface
 
@@ -19,7 +20,7 @@ final class DataSeedingService: Sendable {
         // Prevent seeding if using mock repository
         let featureFlagService = Container.shared.featureFlagService()
         if featureFlagService.isEnabled(.useMockData) {
-            print("⚠️ Cannot seed sample data when using mock repository. Switch to production database first.")
+            logger.warning("Cannot seed sample data when using mock repository. Switch to production database first.", category: .development)
             return
         }
 
@@ -27,16 +28,16 @@ final class DataSeedingService: Sendable {
         let existingCount = try await patientRepository.count()
 
         if existingCount > 0, !force {
-            print("📊 Sample data already exists (\(existingCount) patients). Use force: true to reseed.")
+            logger.info("Sample data already exists (\(existingCount) patients). Use force: true to reseed.", category: .data)
             return
         }
 
         if force, existingCount > 0 {
-            print("🗑️ Clearing existing patient data...")
+            logger.info("Clearing existing patient data...", category: .data)
             try await clearExistingPatients()
         }
 
-        print("🌱 Seeding sample patient data...")
+        logger.info("Seeding sample patient data...", category: .development)
 
         let samplePatients = PatientSampleDataService.generateSamplePatients()
         var successCount = 0
@@ -47,21 +48,21 @@ final class DataSeedingService: Sendable {
             do {
                 _ = try await patientRepository.create(patient)
                 successCount += 1
-                print("✅ Created patient: \(patient.name) (\(patient.species.displayName))")
+                logger.debug("Created patient: \(patient.name) (\(patient.species.displayName))", category: .data)
             } catch {
                 failureCount += 1
-                print("❌ Failed to create patient \(patient.name): \(error.localizedDescription)")
+                logger.error("Failed to create patient \(patient.name): \(error.localizedDescription)", category: .data)
             }
         }
 
-        print("🎉 Data seeding completed: \(successCount) patients created, \(failureCount) failures")
+        logger.info("Data seeding completed: \(successCount) patients created, \(failureCount) failures", category: .development)
     }
 
     /// Clear all patient data from the repository
     func clearAllPatientData() async throws {
-        print("🗑️ Clearing all patient data...")
+        logger.info("Clearing all patient data...", category: .data)
         try await clearExistingPatients()
-        print("✅ All patient data cleared")
+        logger.info("All patient data cleared", category: .data)
     }
 
     /// Check if sample data has been seeded
@@ -79,7 +80,7 @@ final class DataSeedingService: Sendable {
             do {
                 try await patientRepository.delete(patient.id)
             } catch {
-                print("⚠️ Failed to delete patient \(patient.name): \(error.localizedDescription)")
+                logger.warning("Failed to delete patient \(patient.name): \(error.localizedDescription)", category: .data)
             }
         }
     }
