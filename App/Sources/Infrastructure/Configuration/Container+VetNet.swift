@@ -63,19 +63,31 @@ extension Container {
     
     /// Primary patient repository with full protocol implementation
     /// - Returns: PatientRepositoryProtocol implementation
-    /// - Note: Uses cached scope for performance, mock in debug mode
+    /// - Note: Uses cached scope for performance, respects feature flags for mock/real data
     @MainActor
     var patientRepository: Factory<PatientRepositoryProtocol> {
         self {
-            let context = Container.shared.modelContext()
-            return SwiftDataPatientRepository(modelContext: context)
+            let featureFlagService = Container.shared.featureFlagService()
+            
+            if featureFlagService.isEnabled(.useMockData) {
+                #if DEBUG
+                return MockPatientRepository(behavior: .success)
+                #else
+                // Force real data in release builds
+                let context = Container.shared.modelContext()
+                return SwiftDataPatientRepository(modelContext: context)
+                #endif
+            } else {
+                let context = Container.shared.modelContext()
+                return SwiftDataPatientRepository(modelContext: context)
+            }
         }
         .cached
     }
 
     /// CRUD-specific patient repository interface
     /// - Returns: PatientCRUDRepository for basic operations
-    /// - Note: Delegates to main patient repository
+    /// - Note: Delegates to main patient repository, respects feature flags
     @MainActor
     var patientCRUDRepository: Factory<PatientCRUDRepository> {
         self {
@@ -105,6 +117,48 @@ extension Container {
         }
         .cached
     }
+    
+    // MARK: - Configuration Services
+    
+    /// Feature flag service for configuration management
+    /// - Returns: FeatureFlagService implementation
+    /// - Note: Uses UserDefaults-based service, debug service in test environments
+    @MainActor
+    var featureFlagService: Factory<FeatureFlagService> {
+        self {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["USE_DEBUG_FEATURE_FLAGS"] != nil {
+                return DebugFeatureFlagService()
+            }
+            #endif
+            return UserDefaultsFeatureFlagService()
+        }
+        .cached
+    }
+    
+    /// Data seeding service for development environments
+    /// - Returns: DataSeedingService for sample data management
+    /// - Note: Cached for consistent seeding operations
+    @MainActor
+    var dataSeedingService: Factory<DataSeedingService> {
+        self {
+            DataSeedingService()
+        }
+        .cached
+    }
+    
+    /// Development configuration service
+    /// - Returns: DevelopmentConfigurationService for dev tools
+    /// - Note: Only available in debug builds
+    #if DEBUG
+    @MainActor
+    var developmentConfigurationService: Factory<DevelopmentConfigurationService> {
+        self {
+            DevelopmentConfigurationService()
+        }
+        .cached
+    }
+    #endif
 }
 
 // MARK: - ModelContainer Extension
@@ -143,7 +197,7 @@ extension ModelContainer {
             configuration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
-                cloudKitDatabase: .private("VetNetSecure")
+                //cloudKitDatabase: .private("VetNetSecure")
             )
         }
 

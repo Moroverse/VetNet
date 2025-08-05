@@ -23,6 +23,78 @@
 
         init(behavior: MockRepositoryBehavior = .success) {
             self.behavior = behavior
+            
+            // Pre-populate with built-in test data
+            if behavior == .success || behavior == .slowResponse {
+                populateBuiltInTestData()
+            }
+        }
+        
+        // MARK: - Built-in Test Data
+        
+        private func populateBuiltInTestData() {
+            // Add 5 simple test patients for mock repository
+            let testPatients = [
+                Patient(
+                    name: "Test Dog Alpha",
+                    species: .dog,
+                    breed: .dogLabrador,
+                    birthDate: Date().addingTimeInterval(-365 * 24 * 60 * 60 * 2), // 2 years
+                    weight: Measurement(value: 25, unit: .kilograms),
+                    ownerName: "Mock Owner 1",
+                    ownerPhoneNumber: "(555) 111-1111",
+                    ownerEmail: "mock1@test.com",
+                    medicalID: "MOCK-DOG-001"
+                ),
+                Patient(
+                    name: "Test Cat Beta",
+                    species: .cat,
+                    breed: .catPersian,
+                    birthDate: Date().addingTimeInterval(-365 * 24 * 60 * 60 * 3), // 3 years
+                    weight: Measurement(value: 4.5, unit: .kilograms),
+                    ownerName: "Mock Owner 2",
+                    ownerPhoneNumber: "(555) 222-2222",
+                    ownerEmail: "mock2@test.com",
+                    medicalID: "MOCK-CAT-001"
+                ),
+                Patient(
+                    name: "Test Dog Gamma",
+                    species: .dog,
+                    breed: .dogGermanShepherd,
+                    birthDate: Date().addingTimeInterval(-365 * 24 * 60 * 60 * 5), // 5 years
+                    weight: Measurement(value: 35, unit: .kilograms),
+                    ownerName: "Mock Owner 3",
+                    ownerPhoneNumber: "(555) 333-3333",
+                    ownerEmail: "mock3@test.com",
+                    medicalID: "MOCK-DOG-002"
+                ),
+                Patient(
+                    name: "Test Rabbit Delta",
+                    species: .rabbit,
+                    breed: .rabbitAngora,
+                    birthDate: Date().addingTimeInterval(-365 * 24 * 60 * 60 * 1), // 1 year
+                    weight: Measurement(value: 2, unit: .kilograms),
+                    ownerName: "Mock Owner 4",
+                    ownerPhoneNumber: "(555) 444-4444",
+                    ownerEmail: "mock4@test.com",
+                    medicalID: "MOCK-RABBIT-001"
+                ),
+                Patient(
+                    name: "Test Cat Epsilon",
+                    species: .cat,
+                    breed: .catSiamese,
+                    birthDate: Date().addingTimeInterval(-365 * 24 * 60 * 60 * 4), // 4 years
+                    weight: Measurement(value: 3.8, unit: .kilograms),
+                    ownerName: "Mock Owner 5",
+                    ownerPhoneNumber: "(555) 555-5555",
+                    ownerEmail: "mock5@test.com",
+                    medicalID: "MOCK-CAT-002"
+                )
+            ]
+            
+            for patient in testPatients {
+                patients[patient.id] = patient
+            }
         }
 
         // MARK: - PatientCRUDRepository

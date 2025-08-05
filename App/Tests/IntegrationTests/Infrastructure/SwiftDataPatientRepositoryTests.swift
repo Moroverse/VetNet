@@ -12,6 +12,7 @@ import Testing
 /// Integration tests for SwiftDataPatientRepository
 /// Validates entity-domain mapping, persistence operations, and business rule enforcement
 @Suite("SwiftData Patient Repository Integration Tests", .serialized)
+@MainActor
 struct SwiftDataPatientRepositoryTests {
     
     // MARK: - Test Container Setup

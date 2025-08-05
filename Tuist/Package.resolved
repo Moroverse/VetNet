@@ -1,5 +1,5 @@
 {
-  "originHash" : "642a8e82fe348d1fa062ce7067acaa1219834f4965686626d9d486ee7c11f1d4",
+  "originHash" : "159ed36dccc576ea944131bf57802cf91fbd8e63f229bd59a321d1c47616b488",
   "pins" : [
     {
       "identity" : "factory",
@@ -71,6 +71,15 @@
       "state" : {
         "branch" : "develop",
         "revision" : "34097d4d4dbeb6592e4a85ee3afab7fe302e738d"
+      }
+    },
+    {
+      "identity" : "testableview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Moroverse/TestableView.git",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "e556bfccd6d29ae442ba5ccadc160f2f3682bf4a"
       }
     },
     {

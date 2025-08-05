@@ -262,3 +262,62 @@ enum FormState {
 - Preview mocks belong in `Infrastructure/Mocks/` directory
 - Use descriptive behavior enums for different test scenarios
 - Keep mock implementations focused and lightweight
+
+### 2025-08-04: Sample Data & Feature Flag Implementation
+
+**TestableView Integration**:
+- TestableView eliminates ViewInspector boilerplate with `@ViewInspectable` macro and `inspectChangingView` helper
+- Captures test values outside inspection closures for better safety: `var result: String?`
+- Uses `.inspectable(self)` modifier instead of manual hook setup
+- Zero runtime overhead in release builds through conditional compilation
+
+**Sample Data Service Architecture**:
+```swift
+// Comprehensive 22-patient dataset with realistic data
+PatientSampleDataService.generateSamplePatients()
+// - 10 Dogs (Labrador, German Shepherd, Golden Retriever, etc.)
+// - 8 Cats (Persian, Maine Coon, Siamese, Russian Blue, etc.)  
+// - 4 Exotic pets (Rabbit, Parrot, Bearded Dragon, Guinea Pig)
+```
+
+**Feature Flag Service Design**:
+```swift
+enum FeatureFlag: String, CaseIterable {
+    case patientManagementV1 = "patient_management_v1"
+    case useMockData = "use_mock_data"
+    // Automatic default values and descriptions
+}
+
+// UserDefaults-based persistence with real-time notifications
+extension Container {
+    var featureFlagService: Factory<FeatureFlagService> {
+        // Auto-switches to DebugFeatureFlagService in tests
+    }
+}
+```
+
+**Development Configuration Integration**:
+- `DevelopmentConfigurationService` coordinates sample data and feature flags
+- Container automatically selects MockPatientRepository when `useMockData` flag enabled
+- Repository selection respects feature flags: production data in release, configurable in debug
+- Shake gesture access to debug settings in DEBUG builds only
+
+**Data Seeding Patterns**:
+```swift
+// Graceful error handling during seeding
+for patient in samplePatients {
+    do {
+        _ = try await patientRepository.create(patient)
+        successCount += 1
+    } catch {
+        failureCount += 1
+        // Continue with other patients
+    }
+}
+```
+
+**Production Safety**:
+- Mock data flag automatically disabled in release builds
+- Feature flags persist across app launches via UserDefaults  
+- Debug-only functionality isolated with `#if DEBUG` guards
+- CloudKit sync controllable via feature flag for staged rollouts

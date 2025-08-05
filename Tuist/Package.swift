@@ -31,6 +31,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras.git", from: "1.3.1"),
         .package(url: "https://github.com/Kolos65/Mockable", from: "0.4.0"),
         .package(url: "https://github.com/nalexn/ViewInspector", from: "0.10.2"),
-        .package(url: "https://github.com/Moroverse/test-kit.git", branch: "develop")
+        .package(url: "https://github.com/Moroverse/test-kit.git", branch: "develop"),
+        .package(url: "https://github.com/Moroverse/TestableView.git", branch: "develop")
     ]
 )

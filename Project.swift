@@ -45,6 +45,7 @@ let project = Project(
                 .external(name: "Mockable"),
                 .package(product: "QuickForm"),
                 .external(name: "StateKit"),
+                .external(name: "TestableView")
             ],
             settings:
             .settings(base: [
@@ -57,7 +58,7 @@ let project = Project(
                 .debug(
                     name: "Debug",
                     settings: [
-                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING",
+                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING VIEW_INSPECTING",
                     ]
                 ),
             ])
@@ -77,14 +78,13 @@ let project = Project(
                 .external(name: "FactoryTesting"),
                 .external(name: "TestKit"),
                 .external(name: "ConcurrencyExtras"),
+                .external(name: "TestableViewTesting")
             ],
             settings:
             .settings(base: [
                 "SWIFT_VERSION": "6.0",
                 "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
-                "SWIFT_STRICT_CONCURRENCY": "Complete",
-                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true,
+                "SWIFT_STRICT_CONCURRENCY": "Complete"
             ],
             configurations: [])
         ),

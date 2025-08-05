@@ -7,9 +7,11 @@ import QuickForm
 import SwiftUI
 import SwiftUIRouting
 import StateKit
+import TestableView
 
 // MARK: - Patient Creation View
 
+@ViewInspectable
 struct PatientFormView: View {
     @State private var viewModel: PatientFormViewModel
     @State private var showingAlert = false
@@ -78,6 +80,7 @@ struct PatientFormView: View {
         } message: {
             Text(viewModel.formState.errorMessage ?? "An unknown error occurred")
         }
+        .inspectable(self)
     }
 }
 

@@ -10,7 +10,7 @@ import TestKit
 @testable import VetNet
 
 // MARK: - Test Doubles
-
+@MainActor
 final class TestPatientCRUDRepository: PatientCRUDRepository {
     // MARK: - Test Control Properties
 
