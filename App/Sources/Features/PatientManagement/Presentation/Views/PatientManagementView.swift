@@ -1,13 +1,10 @@
-//
-//  PatientManagementView.swift
-//  VetNet
-//
-//  Created by Daniel Moro on 25. 7. 2025..
-//
+// PatientManagementView.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
 
+import FactoryKit
 import SwiftUI
 import SwiftUIRouting
-import FactoryKit
 
 struct PatientManagementView: View {
     @InjectedObservable(\.patientManagementRouter) var router
@@ -17,13 +14,15 @@ struct PatientManagementView: View {
                 PatientListView()
             } destination: { (route: PatientRoute) in
                 switch route {
-                case .patientDetail(let patient):
+                case let .patientDetail(patient):
                     PatientDetailView(
                         patient: patient
                     )
-                case .medicalHistory(_):
+
+                case .medicalHistory:
                     EmptyView()
-                case .appointmentHistory(_):
+
+                case .appointmentHistory:
                     EmptyView()
                 }
             }
@@ -34,7 +33,6 @@ struct PatientManagementView: View {
                 }
             }
         }
-
     }
 }
 

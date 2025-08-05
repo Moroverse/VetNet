@@ -1,6 +1,6 @@
 // FormRouterView.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-15 06:57 GMT.
+// Created by Daniel Moro on 2025-07-21 18:52 GMT.
 
 import SwiftUI
 
@@ -175,7 +175,7 @@ public extension FormRouterView {
     ///   - formContent: A factory function that creates form content
     static func sheet(
         router: Router,
-         @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content,
         @ViewBuilder formContent: @escaping (Router.FormMode) -> FormContent
     ) -> FormRouterView {
         FormRouterView(

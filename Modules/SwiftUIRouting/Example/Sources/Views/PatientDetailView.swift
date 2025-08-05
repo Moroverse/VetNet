@@ -1,20 +1,24 @@
+// PatientDetailView.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
+
 import SwiftUI
 import SwiftUIRouting
 
 struct PatientDetailView: View {
     @State private var viewModel: PatientDetailViewModel
-    
+
     init(patient: Patient, repository: PatientRepository, router: PatientRouter) {
-        self._viewModel = State(initialValue: PatientDetailViewModel(patientId: patient.id, repository: repository, router: router))
+        _viewModel = State(initialValue: PatientDetailViewModel(patientId: patient.id, repository: repository, router: router))
     }
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 patientInfoCard
-                
+
                 medicalInfoCard
-                
+
                 actionButtons
             }
             .padding()
@@ -38,14 +42,14 @@ struct PatientDetailView: View {
             }
         }
     }
-    
+
     private var patientInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("Patient Information", systemImage: "person.fill")
                 .font(.headline)
-            
+
             Divider()
-            
+
             InfoRow(label: "Name", value: viewModel.patient.name)
             InfoRow(label: "Age", value: viewModel.ageDescription)
             InfoRow(label: "MRN", value: viewModel.patient.medicalRecordNumber)
@@ -55,14 +59,14 @@ struct PatientDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
-    
+
     private var medicalInfoCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label("Medical Information", systemImage: "heart.text.square.fill")
                 .font(.headline)
-            
+
             Divider()
-            
+
             InfoRow(label: "Condition", value: viewModel.patient.condition)
             InfoRow(label: "Last Visit", value: viewModel.formattedLastVisit)
         }
@@ -71,7 +75,7 @@ struct PatientDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
-    
+
     private var actionButtons: some View {
         VStack(spacing: 12) {
             Button {
@@ -83,7 +87,7 @@ struct PatientDetailView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            
+
             Button {
                 Task {
                     await viewModel.exportMedicalRecord()
@@ -96,13 +100,12 @@ struct PatientDetailView: View {
         }
         .disabled(viewModel.isLoading)
     }
-    
 }
 
 struct InfoRow: View {
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Text(label)

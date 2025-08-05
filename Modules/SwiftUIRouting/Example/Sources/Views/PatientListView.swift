@@ -1,9 +1,13 @@
+// PatientListView.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
+
 import SwiftUI
 import SwiftUIRouting
 
 struct PatientListView: View {
     @Bindable var viewModel: PatientListViewModel
-    
+
     var body: some View {
         List {
             if viewModel.isLoading {
@@ -49,30 +53,30 @@ struct PatientListView: View {
 
 struct PatientRowView: View {
     let patient: Patient
-    
+
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(patient.name)
                     .font(.headline)
                     .foregroundStyle(.primary)
-                
+
                 Text("MRN: \(patient.medicalRecordNumber)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                
+
                 Text(patient.condition)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
-            
+
             VStack(alignment: .trailing, spacing: 4) {
                 Text("\(patient.age) yrs")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                
+
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundStyle(.tertiary)

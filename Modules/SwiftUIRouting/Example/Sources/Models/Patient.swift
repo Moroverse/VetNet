@@ -1,3 +1,7 @@
+// Patient.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
+
 import Foundation
 
 struct Patient: Identifiable, Equatable, Hashable {
@@ -7,7 +11,7 @@ struct Patient: Identifiable, Equatable, Hashable {
     var medicalRecordNumber: String
     var condition: String
     var lastVisit: Date
-    
+
     init(
         id: UUID = UUID(),
         name: String,
@@ -35,7 +39,7 @@ extension Patient {
             lastVisit: Date().addingTimeInterval(-86400 * 7)
         )
     }
-    
+
     static var previews: [Patient] {
         [
             Patient(name: "John Doe", age: 35, medicalRecordNumber: "MRN-12345", condition: "Hypertension"),

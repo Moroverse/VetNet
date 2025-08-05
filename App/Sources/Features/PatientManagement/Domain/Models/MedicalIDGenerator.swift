@@ -1,6 +1,6 @@
 // MedicalIDGenerator.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-22 19:40 GMT.
+// Created by Daniel Moro on 2025-07-22 19:58 GMT.
 
 import Foundation
 
@@ -59,7 +59,7 @@ private extension MedicalIDGenerator {
     /// Uses hash of name combined with timestamp to create unique 4-digit number
     static func generateSequentialNumber(from name: String) -> String {
         let nameHash = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines).hash
-        let timestampHash = Int(Date().timeIntervalSince1970 * 1000000) // Convert to microseconds for more uniqueness
+        let timestampHash = Int(Date().timeIntervalSince1970 * 1_000_000) // Convert to microseconds for more uniqueness
         let combinedHash = nameHash ^ timestampHash // XOR for uniqueness
         let positiveHash = abs(combinedHash)
         let fourDigitNumber = positiveHash % 10000

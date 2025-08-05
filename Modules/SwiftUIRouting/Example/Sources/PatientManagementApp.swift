@@ -1,3 +1,7 @@
+// PatientManagementApp.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
+
 import SwiftUI
 import SwiftUIRouting
 
@@ -14,15 +18,15 @@ struct ContentView: View {
     @State private var patientRepository = PatientRepository()
     @State private var patientRouter = PatientRouter()
     @State private var patientListViewModel: PatientListViewModel
-    
+
     init() {
         let repository = PatientRepository()
         let router = PatientRouter()
-        self._patientRepository = State(initialValue: repository)
-        self._patientRouter = State(initialValue: router)
-        self._patientListViewModel = State(initialValue: PatientListViewModel(repository: repository, router: router))
+        _patientRepository = State(initialValue: repository)
+        _patientRouter = State(initialValue: router)
+        _patientListViewModel = State(initialValue: PatientListViewModel(repository: repository, router: router))
     }
-    
+
     var body: some View {
         FormRouterView(router: patientRouter) {
             NavigationRouterView(router: patientRouter) {
@@ -31,7 +35,7 @@ struct ContentView: View {
                 )
             } destination: { (route: PatientRoute) in
                 switch route {
-                case .patientDetail(let patient):
+                case let .patientDetail(patient):
                     PatientDetailView(
                         patient: patient,
                         repository: patientRepository,

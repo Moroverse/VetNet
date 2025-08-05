@@ -7,7 +7,8 @@ import Foundation
 import SwiftData
 
 // MARK: - CloudKit Entitlements Requirements
-// 
+
+//
 // For CloudKit synchronization to work, ensure the following entitlements are configured:
 // 1. Enable CloudKit capability in Xcode project settings
 // 2. Add iCloud container: iCloud.com.moroverse.VetNet
@@ -19,6 +20,7 @@ import SwiftData
 
 extension Container {
     // MARK: - Error Handling Strategy
+
     //
     // The VetNet container implements a robust error handling strategy:
     //
@@ -33,9 +35,9 @@ extension Container {
     // • Repository failure → Mock repository (debug/test only)
     //
     // All errors are logged with detailed context for debugging.
-    
+
     // MARK: - Data Layer
-    
+
     /// Creates a ModelContext for SwiftData operations
     /// - Returns: ModelContext instance with proper error handling
     /// - Note: Uses singleton pattern to ensure consistent database state
@@ -47,20 +49,20 @@ extension Container {
         }
         .singleton
     }
-    
+
     /// Creates the main ModelContainer for the application
     /// - Returns: ModelContainer with CloudKit integration
     /// - Note: Uses singleton pattern to ensure single source of truth
     @MainActor
     var modelContainer: Factory<ModelContainer> {
         self {
-            return ModelContainer.vetNetContainer()
+            ModelContainer.vetNetContainer()
         }
         .singleton
     }
 
     // MARK: - Patient Management
-    
+
     /// Primary patient repository with full protocol implementation
     /// - Returns: PatientRepositoryProtocol implementation
     /// - Note: Uses cached scope for performance, respects feature flags for mock/real data
@@ -68,14 +70,14 @@ extension Container {
     var patientRepository: Factory<PatientRepositoryProtocol> {
         self {
             let featureFlagService = Container.shared.featureFlagService()
-            
+
             if featureFlagService.isEnabled(.useMockData) {
                 #if DEBUG
-                return MockPatientRepository(behavior: .success)
+                    return MockPatientRepository(behavior: .success)
                 #else
-                // Force real data in release builds
-                let context = Container.shared.modelContext()
-                return SwiftDataPatientRepository(modelContext: context)
+                    // Force real data in release builds
+                    let context = Container.shared.modelContext()
+                    return SwiftDataPatientRepository(modelContext: context)
                 #endif
             } else {
                 let context = Container.shared.modelContext()
@@ -117,9 +119,9 @@ extension Container {
         }
         .cached
     }
-    
+
     // MARK: - Configuration Services
-    
+
     /// Feature flag service for configuration management
     /// - Returns: FeatureFlagService implementation
     /// - Note: Uses UserDefaults-based service, debug service in test environments
@@ -127,15 +129,15 @@ extension Container {
     var featureFlagService: Factory<FeatureFlagService> {
         self {
             #if DEBUG
-            if ProcessInfo.processInfo.environment["USE_DEBUG_FEATURE_FLAGS"] != nil {
-                return DebugFeatureFlagService()
-            }
+                if ProcessInfo.processInfo.environment["USE_DEBUG_FEATURE_FLAGS"] != nil {
+                    return DebugFeatureFlagService()
+                }
             #endif
             return UserDefaultsFeatureFlagService()
         }
         .cached
     }
-    
+
     /// Data seeding service for development environments
     /// - Returns: DataSeedingService for sample data management
     /// - Note: Cached for consistent seeding operations
@@ -146,18 +148,18 @@ extension Container {
         }
         .cached
     }
-    
+
     /// Development configuration service
     /// - Returns: DevelopmentConfigurationService for dev tools
     /// - Note: Only available in debug builds
     #if DEBUG
-    @MainActor
-    var developmentConfigurationService: Factory<DevelopmentConfigurationService> {
-        self {
-            DevelopmentConfigurationService()
+        @MainActor
+        var developmentConfigurationService: Factory<DevelopmentConfigurationService> {
+            self {
+                DevelopmentConfigurationService()
+            }
+            .cached
         }
-        .cached
-    }
     #endif
 }
 
@@ -179,61 +181,59 @@ extension ModelContainer {
         ])
 
         // MARK: - CloudKit Configuration
-        
+
         // Use in-memory storage for testing/preview contexts
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         let isTest = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        
-        let configuration: ModelConfiguration
-        
-        if isPreview || isTest {
+
+        let configuration = if isPreview || isTest {
             // In-memory configuration for SwiftUI previews and tests
-            configuration = ModelConfiguration(
+            ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: true
             )
         } else {
             // Production configuration with CloudKit
-            configuration = ModelConfiguration(
+            ModelConfiguration(
                 schema: schema,
-                isStoredInMemoryOnly: false,
-                //cloudKitDatabase: .private("VetNetSecure")
+                isStoredInMemoryOnly: false
+                // cloudKitDatabase: .private("VetNetSecure")
             )
         }
 
         do {
             let container = try ModelContainer(for: schema, configurations: [configuration])
-            
+
             // Configure CloudKit-specific settings if not in test/preview
-            if !isPreview && !isTest {
+            if !isPreview, !isTest {
                 configureCloudKitSettings(for: container)
             }
-            
+
             return container
         } catch {
             // Log error details for debugging
             print("⚠️ ModelContainer initialization failed: \(error.localizedDescription)")
-            
+
             // In production, this is a critical error
             // In development, we might want to fall back to local-only storage
             #if DEBUG
-            print("🔧 Attempting fallback to local-only storage...")
-            do {
-                let fallbackConfiguration = ModelConfiguration(
-                    schema: schema,
-                    isStoredInMemoryOnly: false
-                    // CloudKit disabled in fallback
-                )
-                return try ModelContainer(for: schema, configurations: [fallbackConfiguration])
-            } catch {
-                fatalError("Failed to create ModelContainer even without CloudKit: \(error)")
-            }
+                print("🔧 Attempting fallback to local-only storage...")
+                do {
+                    let fallbackConfiguration = ModelConfiguration(
+                        schema: schema,
+                        isStoredInMemoryOnly: false
+                        // CloudKit disabled in fallback
+                    )
+                    return try ModelContainer(for: schema, configurations: [fallbackConfiguration])
+                } catch {
+                    fatalError("Failed to create ModelContainer even without CloudKit: \(error)")
+                }
             #else
-            fatalError("Failed to create ModelContainer: \(error)")
+                fatalError("Failed to create ModelContainer: \(error)")
             #endif
         }
     }
-    
+
     /// Configures CloudKit-specific settings for HIPAA compliance
     /// - Parameter container: The ModelContainer to configure
     private static func configureCloudKitSettings(for container: ModelContainer) {
@@ -242,7 +242,7 @@ extension ModelContainer {
         // - Custom record zones (handled by cloudKitDatabase parameter)
         // - Encryption settings (automatic with private database)
         // - Access control (managed by CloudKit entitlements)
-        
+
         // Log successful CloudKit initialization
         print("✅ CloudKit configured with VetNetSecure private database")
         print("📋 HIPAA compliance features enabled:")
@@ -250,7 +250,7 @@ extension ModelContainer {
         print("  • Custom zone isolation for practice data")
         print("  • Audit trail logging at repository level")
     }
-    
+
     /// Creates a fallback ModelContainer for development when CloudKit is unavailable
     /// - Returns: In-memory ModelContainer for development/testing
     /// - Note: This container provides basic functionality without persistence
@@ -259,15 +259,15 @@ extension ModelContainer {
             PatientEntity.self
             // Same entities as main container
         ])
-        
+
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true // In-memory only for fallback
         )
-        
+
         print("🔧 Creating fallback ModelContainer (in-memory only)")
         print("⚠️  Data will not persist between app launches")
-        
+
         return try ModelContainer(for: schema, configurations: [configuration])
     }
 }

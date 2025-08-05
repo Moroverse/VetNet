@@ -8,7 +8,7 @@ let project = Project(
     name: "VetNet",
     packages: [
         .package(url: "https://github.com/Moroverse/quick-form", .branch("develop")),
-        .package(path: "Modules/SwiftUIRouting"),
+        .package(path: "Modules/SwiftUIRouting")
     ],
     targets: [
         .target(
@@ -21,12 +21,12 @@ let project = Project(
                 with: [
                     "UILaunchScreen": [
                         "UIColorName": "",
-                        "UIImageName": "",
+                        "UIImageName": ""
                     ],
                     "CFBundleDisplayName": "VetNet",
                     "NSAppTransportSecurity": [
-                        "NSAllowsArbitraryLoads": true,
-                    ],
+                        "NSAllowsArbitraryLoads": true
+                    ]
                 ]
             ),
             sources: ["App/Sources/**"],
@@ -37,7 +37,7 @@ let project = Project(
 //                "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
                 "com.apple.security.app-sandbox": true,
                 "com.apple.security.network.client": true,
-                "com.apple.security.files.user-selected.read-write": true,
+                "com.apple.security.files.user-selected.read-write": true
             ]),
             dependencies: [
                 .external(name: "FactoryKit"),
@@ -53,14 +53,14 @@ let project = Project(
                 "SWIFT_APPROACHABLE_CONCURRENCY": true,
                 "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
                 "SWIFT_STRICT_CONCURRENCY": "Complete",
-                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true,
+                "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": true
             ], configurations: [
                 .debug(
                     name: "Debug",
                     settings: [
-                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING VIEW_INSPECTING",
+                        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG MOCKING VIEW_INSPECTING"
                     ]
-                ),
+                )
             ])
         ),
         .target(
@@ -81,12 +81,14 @@ let project = Project(
                 .external(name: "TestableViewTesting")
             ],
             settings:
-            .settings(base: [
-                "SWIFT_VERSION": "6.0",
-                "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                "SWIFT_STRICT_CONCURRENCY": "Complete"
-            ],
-            configurations: [])
-        ),
+            .settings(
+                base: [
+                    "SWIFT_VERSION": "6.0",
+                    "SWIFT_APPROACHABLE_CONCURRENCY": true,
+                    "SWIFT_STRICT_CONCURRENCY": "Complete"
+                ],
+                configurations: []
+            )
+        )
     ]
 )

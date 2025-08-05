@@ -1,9 +1,6 @@
-//
-//  PatientFormResult.swift
-//  VetNet
-//
-//  Created by Daniel Moro on 24. 7. 2025..
-//
+// PatientFormResult.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
 
 import SwiftUIRouting
 
@@ -11,7 +8,7 @@ import SwiftUIRouting
 /// Provides type-safe results with detailed feedback for form operations
 enum PatientFormResult: RouteResult {
     case created(Patient, message: String = "Patient created successfully")
-    case updated(Patient, message: String = "Patient updated successfully") 
+    case updated(Patient, message: String = "Patient updated successfully")
     case deleted(Patient, message: String = "Patient deleted successfully")
     case cancelled
     case error(Error)
@@ -38,25 +35,25 @@ enum PatientFormResult: RouteResult {
     }
 
     var error: Error? {
-        if case .error(let error) = self { return error }
+        if case let .error(error) = self { return error }
         return nil
     }
-    
+
     var patient: Patient? {
         switch self {
-        case .created(let patient, _), .updated(let patient, _), .deleted(let patient, _):
-            return patient
+        case let .created(patient, _), let .updated(patient, _), let .deleted(patient, _):
+            patient
         case .cancelled, .error:
-            return nil
+            nil
         }
     }
-    
+
     var successMessage: String? {
         switch self {
-        case .created(_, let message), .updated(_, let message), .deleted(_, let message):
-            return message
+        case let .created(_, message), let .updated(_, message), let .deleted(_, message):
+            message
         case .cancelled, .error:
-            return nil
+            nil
         }
     }
 }

@@ -20,13 +20,13 @@ let package = Package(
     name: "VetNet",
     dependencies: [
         // Forms
-        //.package(url: "https://github.com/Moroverse/quick-form", branch: "develop"),
+        // .package(url: "https://github.com/Moroverse/quick-form", branch: "develop"),
         // View State
         .package(url: "https://github.com/Moroverse/state-kit", from: "0.6.1"),
         // Dependency Injection
         .package(url: "https://github.com/hmlongco/Factory.git", branch: "develop"),
         // Custom Navigation
-        //.package(path: "../Modules/SwiftUIRouting"),
+        // .package(path: "../Modules/SwiftUIRouting"),
         // Testing
         .package(url: "https://github.com/pointfreeco/swift-concurrency-extras.git", from: "1.3.1"),
         .package(url: "https://github.com/Kolos65/Mockable", from: "0.4.0"),

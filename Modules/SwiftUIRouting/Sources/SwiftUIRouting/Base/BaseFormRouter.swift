@@ -1,6 +1,6 @@
 // BaseFormRouter.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-15 06:54 GMT.
+// Created by Daniel Moro on 2025-07-21 18:52 GMT.
 
 import SwiftUI
 
@@ -107,7 +107,7 @@ open class BaseFormRouter<FormMode: Identifiable, FormResult: RouteResult>: @Mai
     /// and call any registered callbacks.
     ///
     /// - Parameter result: The result to handle
-   public func handleResult(_ result: FormResult) {
+    public func handleResult(_ result: FormResult) {
         // Resume async continuation if present
         if let continuation = resultContinuation {
             let resultToSend = result
@@ -190,4 +190,3 @@ public extension BaseFormRouter {
         }
     }
 #endif
-

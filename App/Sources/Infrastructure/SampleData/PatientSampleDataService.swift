@@ -1,33 +1,32 @@
 // PatientSampleDataService.swift
 // Copyright (c) 2025 Moroverse
-// Sample data generation service for development and testing
+// Created by Daniel Moro on 2025-08-05 03:57 GMT.
 
 import Foundation
 
 // MARK: - Sample Data Service
 
 final class PatientSampleDataService: Sendable {
-    
     // MARK: - Sample Data Generation
-    
+
     /// Generate a comprehensive dataset of 20+ patients with realistic data
     static func generateSamplePatients() -> [Patient] {
         var patients: [Patient] = []
-        
+
         // Dogs - 10 patients
         patients.append(contentsOf: generateDogPatients())
-        
-        // Cats - 8 patients  
+
+        // Cats - 8 patients
         patients.append(contentsOf: generateCatPatients())
-        
+
         // Exotic pets - 4 patients
         patients.append(contentsOf: generateExoticPatients())
-        
+
         return patients
     }
-    
+
     // MARK: - Dog Patients
-    
+
     private static func generateDogPatients() -> [Patient] {
         [
             Patient(
@@ -44,7 +43,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-30 * 24 * 60 * 60), // 30 days ago
                 updatedAt: Date().addingTimeInterval(-5 * 24 * 60 * 60) // 5 days ago
             ),
-            
+
             Patient(
                 name: "Bella",
                 species: .dog,
@@ -59,7 +58,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-45 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-10 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Rex",
                 species: .dog,
@@ -74,7 +73,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-60 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-15 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Luna",
                 species: .dog,
@@ -89,7 +88,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-75 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-20 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Charlie",
                 species: .dog,
@@ -104,7 +103,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-90 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-25 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Daisy",
                 species: .dog,
@@ -119,7 +118,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-15 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-2 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Rocky",
                 species: .dog,
@@ -134,7 +133,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-120 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-30 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Sophie",
                 species: .dog,
@@ -149,7 +148,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-105 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-35 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Buddy",
                 species: .dog,
@@ -164,7 +163,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-135 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-40 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Zoe",
                 species: .dog,
@@ -181,9 +180,9 @@ final class PatientSampleDataService: Sendable {
             )
         ]
     }
-    
+
     // MARK: - Cat Patients
-    
+
     private static func generateCatPatients() -> [Patient] {
         [
             Patient(
@@ -200,7 +199,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-50 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-8 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Mittens",
                 species: .cat,
@@ -215,7 +214,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-95 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-18 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Oliver",
                 species: .cat,
@@ -230,7 +229,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-70 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-14 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Sophie",
                 species: .cat,
@@ -245,7 +244,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-110 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-22 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Leo",
                 species: .cat,
@@ -260,7 +259,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-85 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-16 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Cleo",
                 species: .cat,
@@ -275,7 +274,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-25 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-3 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Shadow",
                 species: .cat,
@@ -290,7 +289,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-140 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-28 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Luna",
                 species: .cat,
@@ -307,9 +306,9 @@ final class PatientSampleDataService: Sendable {
             )
         ]
     }
-    
+
     // MARK: - Exotic Patients
-    
+
     private static func generateExoticPatients() -> [Patient] {
         [
             Patient(
@@ -325,7 +324,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-40 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-6 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Polly",
                 species: .bird,
@@ -339,7 +338,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-100 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-20 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Spike",
                 species: .other,
@@ -353,7 +352,7 @@ final class PatientSampleDataService: Sendable {
                 createdAt: Date().addingTimeInterval(-55 * 24 * 60 * 60),
                 updatedAt: Date().addingTimeInterval(-9 * 24 * 60 * 60)
             ),
-            
+
             Patient(
                 name: "Patches",
                 species: .other,

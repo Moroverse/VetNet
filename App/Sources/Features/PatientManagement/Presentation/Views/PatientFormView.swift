@@ -1,12 +1,12 @@
 // PatientFormView.swift
 // Copyright (c) 2025 Moroverse
-// VetNet Patient Creation View
+// Created by Daniel Moro on 2025-07-24 11:19 GMT.
 
 import FactoryKit
 import QuickForm
+import StateKit
 import SwiftUI
 import SwiftUIRouting
-import StateKit
 import TestableView
 
 // MARK: - Patient Creation View
@@ -28,7 +28,7 @@ struct PatientFormView: View {
         } else {
             PatientFormViewModel(value: PatientComponents())
         }
-        self._viewModel = State(initialValue: viewModel)
+        _viewModel = State(initialValue: viewModel)
         self.onResult = onResult
     }
 
@@ -313,7 +313,7 @@ struct PatientFormView_Previews: PreviewProvider {
                     weight: .init(value: 12.5, unit: .kilograms),
                     ownerName: "Alice Example",
                     ownerPhoneNumber: "123-456-7890"
-                ))){ result in
+                ))) { result in
                     print("Result: \(result)")
                 }
             }

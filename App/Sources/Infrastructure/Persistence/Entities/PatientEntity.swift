@@ -1,6 +1,6 @@
 // PatientEntity.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-22 20:18 GMT.
+// Created by Daniel Moro on 2025-07-22 20:24 GMT.
 
 import Foundation
 import SwiftData
@@ -9,30 +9,30 @@ import SwiftData
 
 /// SwiftData persistence entity for Patient domain model
 /// Located in Infrastructure layer to isolate persistence concerns from domain logic
-/// 
+///
 /// ## CloudKit Integration Requirements
-/// 
+///
 /// CloudKit synchronization imposes specific constraints on SwiftData models:
 /// - All properties must be optional or have default values for CloudKit compatibility
 /// - @Attribute(.unique) constraints are NOT supported with CloudKit enabled
 /// - Uniqueness validation must be enforced at the repository layer instead
-/// 
+///
 /// ## Uniqueness Enforcement Strategy
-/// 
+///
 /// Although we cannot use @Attribute(.unique) with CloudKit, the following fields
 /// require uniqueness and are validated in SwiftDataPatientRepository:
 /// - `medicalID`: Must be unique across all patients in the practice
 /// - Future: `(practiceID, medicalID)` compound key when multi-practice support is added
-/// 
+///
 /// ## HIPAA Compliance
-/// 
+///
 /// Patient data is synchronized to CloudKit private database with:
 /// - Custom zone "VetNetSecure" for data isolation
 /// - End-to-end encryption for PHI (Protected Health Information)
 /// - Audit trail logging at repository level for all data access
-/// 
+///
 /// ## Future Relationships
-/// 
+///
 /// When related entities are implemented, the following relationships will be added:
 /// - `owner`: Many-to-one relationship with OwnerEntity
 /// - `appointments`: One-to-many relationship with AppointmentEntity
@@ -50,22 +50,22 @@ final class PatientEntity {
 
     /// Patient's name - required field
     var name: String = ""
-    
+
     /// Raw value of Species enum - stored as String for CloudKit
     /// Maps to Species enum in domain model
     var speciesRawValue: String = "dog"
-    
+
     /// Raw value of Breed enum - stored as String for CloudKit
     /// Maps to Breed enum in domain model, validated against species
     var breedRawValue: String = "mixed"
-    
+
     /// Date of birth - used for age calculations
     var birthDate: Date = Date()
-    
+
     /// Weight value component - combined with weightUnitSymbol
     /// Forms Measurement<UnitMass> in domain model
     var weightValue: Double = 0.0
-    
+
     /// Weight unit symbol (kg, g, lb, oz) - combined with weightValue
     var weightUnitSymbol: String = "kg"
 
@@ -93,16 +93,16 @@ final class PatientEntity {
     var cloudKitZone: String?
 
     // MARK: - Future Relationships (To Be Implemented)
-    
+
     // When OwnerEntity is created:
     // @Relationship(inverse: \OwnerEntity.patients) var owner: OwnerEntity?
-    
+
     // When AppointmentEntity is created:
     // @Relationship(deleteRule: .nullify) var appointments: [AppointmentEntity] = []
-    
+
     // When MedicalRecordEntity is created:
     // @Relationship(deleteRule: .cascade) var medicalRecords: [MedicalRecordEntity] = []
-    
+
     // When PracticeEntity is created (for multi-practice support):
     // @Relationship(inverse: \PracticeEntity.patients) var practice: PracticeEntity?
 
@@ -143,7 +143,7 @@ final class PatientEntity {
         self.updatedAt = updatedAt
         self.cloudKitZone = cloudKitZone
     }
-    
+
     /// Required initializer for SwiftData
     init() {
         // All properties have default values
@@ -175,15 +175,15 @@ extension PatientEntity {
         var weight: Measurement<UnitMass>
         let unit: UnitMass = switch weightUnitSymbol {
         case "kg":
-                .kilograms
+            .kilograms
         case "g":
-                .grams
+            .grams
         case "lb":
-                .pounds
+            .pounds
         case "oz":
-                .ounces
+            .ounces
         default:
-                .kilograms // Default fallback
+            .kilograms // Default fallback
         }
         weight = Measurement(value: weightValue, unit: unit)
 
@@ -250,7 +250,7 @@ extension PatientEntity {
             notes: patient.notes,
             createdAt: patient.createdAt,
             updatedAt: patient.updatedAt,
-            cloudKitZone: cloudKitZone,
+            cloudKitZone: cloudKitZone
         )
 
         return entity

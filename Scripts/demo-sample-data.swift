@@ -2,7 +2,7 @@
 
 // demo-sample-data.swift
 // Copyright (c) 2025 Moroverse
-// Demonstration script for VetNet sample data functionality
+// Created by Daniel Moro on 2025-08-05 03:57 GMT.
 
 import Foundation
 
@@ -68,6 +68,7 @@ for (flag, enabled) in exampleFlags.sorted(by: { $0.key < $1.key }) {
     let formattedName = flag.replacingOccurrences(of: "_", with: " ").capitalized
     print("  \(formattedName): \(status)")
 }
+
 print()
 
 print("🏁 Ready to test patient management features!")

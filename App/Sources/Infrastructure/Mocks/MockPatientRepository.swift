@@ -1,6 +1,6 @@
 // MockPatientRepository.swift
 // Copyright (c) 2025 Moroverse
-// Mock Patient Repository for Previews and Testing
+// Created by Daniel Moro on 2025-08-03 04:36 GMT.
 
 #if DEBUG
     import Foundation
@@ -23,15 +23,15 @@
 
         init(behavior: MockRepositoryBehavior = .success) {
             self.behavior = behavior
-            
+
             // Pre-populate with built-in test data
             if behavior == .success || behavior == .slowResponse {
                 populateBuiltInTestData()
             }
         }
-        
+
         // MARK: - Built-in Test Data
-        
+
         private func populateBuiltInTestData() {
             // Add 5 simple test patients for mock repository
             let testPatients = [
@@ -91,7 +91,7 @@
                     medicalID: "MOCK-CAT-002"
                 )
             ]
-            
+
             for patient in testPatients {
                 patients[patient.id] = patient
             }
@@ -233,10 +233,10 @@
             }
 
             let allPatients = Array(patients.values).sorted { $0.createdAt > $1.createdAt }
-            
+
             // For mock, we'll return all patients up to limit, with no loadMore
             let itemsToReturn = Array(allPatients.prefix(limit))
-            
+
             return Paginated(items: itemsToReturn, loadMore: nil)
         }
 
@@ -248,10 +248,10 @@
             let filteredPatients = patients.values
                 .filter { $0.name.localizedCaseInsensitiveContains(nameQuery) }
                 .sorted { $0.name < $1.name }
-            
+
             // For mock, we'll return filtered patients up to limit, with no loadMore
             let itemsToReturn = Array(filteredPatients.prefix(limit))
-            
+
             return Paginated(items: itemsToReturn, loadMore: nil)
         }
     }

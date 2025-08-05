@@ -1,21 +1,20 @@
 // PatientNavigationIntegrationTests.swift
 // Copyright (c) 2025 Moroverse
-// VetNet Patient Navigation Integration Tests
+// Created by Daniel Moro on 2025-07-31 19:05 GMT.
 
-import Testing
+import ConcurrencyExtras
+import FactoryKit
 import Foundation
 import SwiftUI
 import SwiftUIRouting
-import FactoryKit
-import ConcurrencyExtras
+import Testing
 @testable import VetNet
 
 @Suite("Patient Navigation Integration Tests")
 @MainActor
 struct PatientNavigationIntegrationTests {
-    
     // MARK: - Test Setup
-    
+
     private func createTestPatient(name: String = "Test Patient") -> Patient {
         Patient(
             name: name,
@@ -29,11 +28,11 @@ struct PatientNavigationIntegrationTests {
             microchipNumber: "123456789"
         )
     }
-    
+
     // MARK: - End-to-End Navigation Flow Tests
-    
+
     @Test("Complete patient creation and navigation flow")
-    func testCompletePatientCreationFlow() async {
+    func completePatientCreationFlow() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
             var createdPatient: Patient?
@@ -41,7 +40,7 @@ struct PatientNavigationIntegrationTests {
             // Step 1: Create a new patient
             Task {
                 let result = await router.createPatient()
-                if case .created(let patient, _) = result {
+                if case let .created(patient, _) = result {
                     createdPatient = patient
                 }
             }
@@ -74,9 +73,9 @@ struct PatientNavigationIntegrationTests {
             }
         }
     }
-    
+
     @Test("Edit patient flow with navigation")
-    func testEditPatientFlow() async {
+    func editPatientFlow() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
             let existingPatient = createTestPatient(name: "Existing Patient")
@@ -89,7 +88,7 @@ struct PatientNavigationIntegrationTests {
             // Start edit flow
             Task {
                 let result = await router.editPatient(existingPatient)
-                if case .updated(let patient, _) = result {
+                if case let .updated(patient, _) = result {
                     updatedPatient = patient
                 }
             }
@@ -113,9 +112,9 @@ struct PatientNavigationIntegrationTests {
             #expect(router.navigationPath.count == 1)
         }
     }
-    
+
     @Test("Error handling in navigation flow")
-    func testErrorHandlingFlow() async {
+    func errorHandlingFlow() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
             var errorReceived: Error?
@@ -127,7 +126,7 @@ struct PatientNavigationIntegrationTests {
             // Start create flow
             Task {
                 let result = await router.createPatient()
-                if case .error(let error) = result {
+                if case let .error(error) = result {
                     errorReceived = error
                 }
             }
@@ -145,12 +144,12 @@ struct PatientNavigationIntegrationTests {
             #expect(errorReceived?.localizedDescription == "Invalid patient data")
 
             // Navigation path should remain empty
-            #expect(router.navigationPath.count == 0)
+            #expect(router.navigationPath.isEmpty)
         }
     }
-    
+
     @Test("Cancellation in navigation flow")
-    func testCancellationFlow() async {
+    func cancellationFlow() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
             let patient = createTestPatient()
@@ -182,11 +181,11 @@ struct PatientNavigationIntegrationTests {
             #expect(router.navigationPath.count == 1)
         }
     }
-    
+
     // MARK: - Complex Navigation Scenarios
-    
+
     @Test("Deep navigation with form interactions")
-    func testDeepNavigationWithForms() async {
+    func deepNavigationWithForms() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
             let patient1 = createTestPatient(name: "Patient 1")
@@ -203,7 +202,7 @@ struct PatientNavigationIntegrationTests {
             // Start edit flow from deep in navigation
             Task {
                 let result = await router.editPatient(patient2)
-                if case .updated(let updatedPatient, _) = result {
+                if case let .updated(updatedPatient, _) = result {
                     #expect(updatedPatient.name == "Updated Patient 2")
                 }
             }
@@ -225,9 +224,9 @@ struct PatientNavigationIntegrationTests {
             #expect(router.navigationPath.count == 4)
         }
     }
-    
+
     @Test("Multiple form presentations in sequence")
-    func testMultipleFormPresentationsInSequence() async {
+    func multipleFormPresentationsInSequence() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
 
@@ -241,7 +240,7 @@ struct PatientNavigationIntegrationTests {
                 #expect(result2.isSuccess)
 
                 // Edit the second patient
-                if case .created(let patient, _) = result2 {
+                if case let .created(patient, _) = result2 {
                     let result3 = await router.editPatient(patient)
                     #expect(result3.isSuccess)
                 }
@@ -271,11 +270,11 @@ struct PatientNavigationIntegrationTests {
             #expect(router.presentedForm == nil)
         }
     }
-    
+
     // MARK: - State Preservation Tests
-    
+
     @Test("Navigation state preserved across form operations")
-    func testNavigationStatePreservation() async {
+    func navigationStatePreservation() async {
         await withMainSerialExecutor {
             let router = PatientManagementFormRouter()
             let patient = createTestPatient()

@@ -1,6 +1,6 @@
 // PatientValidationRules.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-07-22 19:44 GMT.
+// Created by Daniel Moro on 2025-07-22 19:58 GMT.
 
 import Foundation
 import QuickForm
@@ -73,8 +73,8 @@ struct AllowedCharactersRule: ValidationRule {
 struct NotWhiteSpaceOnlyRule: ValidationRule {
     func validate(_ value: String) -> ValidationResult {
         value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        ? .failure("This field contains only whitespace characters")
-        : .success
+            ? .failure("This field contains only whitespace characters")
+            : .success
     }
 }
 

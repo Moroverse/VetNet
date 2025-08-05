@@ -1,32 +1,36 @@
+// CreatePatientForm.swift
+// Copyright (c) 2025 Moroverse
+// Created by Daniel Moro on 2025-07-29 14:43 GMT.
+
 import SwiftUI
 import SwiftUIRouting
 
 struct CreatePatientForm: View {
     @State private var viewModel: CreatePatientViewModel
-let onResult: (PatientFormResult) -> Void
-    
+    let onResult: (PatientFormResult) -> Void
+
     init(mode: PatientFormMode, onResult: @escaping (PatientFormResult) -> Void) {
-        self._viewModel = State(initialValue: CreatePatientViewModel(patient: mode.patient))
+        _viewModel = State(initialValue: CreatePatientViewModel(patient: mode.patient))
         self.onResult = onResult
     }
-    
+
     var body: some View {
         Form {
             Section("Patient Information") {
                 TextField("Full Name", text: $viewModel.name)
                     .textContentType(.name)
-                
+
                 TextField("Age", text: $viewModel.age)
                     .keyboardType(.numberPad)
-                
+
                 TextField("Medical Record Number", text: $viewModel.medicalRecordNumber)
                     .textContentType(.none)
                     .autocorrectionDisabled()
-                
+
                 TextField("Primary Condition", text: $viewModel.condition)
                     .textContentType(.none)
             }
-            
+
             if let errorMessage = viewModel.errorMessage {
                 Section {
                     Label(errorMessage, systemImage: "exclamationmark.triangle")
@@ -53,7 +57,7 @@ let onResult: (PatientFormResult) -> Void
             }
         }
     }
-    
+
     private func savePatient() {
         Task {
             do {
