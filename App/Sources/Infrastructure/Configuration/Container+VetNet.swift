@@ -62,8 +62,8 @@ extension Container {
     @MainActor
     var modelContext: Factory<ModelContext> {
         self {
-            let container = Container.shared.modelContainer()
-            return ModelContext(container)
+            // let container = Container.shared.modelContainer()
+            ModelContext(self.modelContainer())
         }
         .singleton
     }
@@ -74,7 +74,7 @@ extension Container {
     @MainActor
     var modelContainer: Factory<ModelContainer> {
         self {
-            ModelContainer.vetNetContainer()
+            return ModelContainer.vetNetContainer()
         }
         .singleton
     }
@@ -87,20 +87,19 @@ extension Container {
     @MainActor
     var patientRepository: Factory<PatientRepositoryProtocol> {
         self {
-            let featureFlagService = Container.shared.featureFlagService()
+            let featureFlagService = self.featureFlagService()
 
             if featureFlagService.isEnabled(.useMockData) {
-                #if DEBUG
-                    return MockPatientRepository(behavior: .success)
-                #else
-                    // Force real data in release builds
-                    let context = Container.shared.modelContext()
-                    return SwiftDataPatientRepository(modelContext: context)
-                #endif
+                // Force real data in release builds
+                let context = Container.shared.modelContext()
+                return SwiftDataPatientRepository(modelContext: context)
             } else {
                 let context = Container.shared.modelContext()
                 return SwiftDataPatientRepository(modelContext: context)
             }
+        }
+        .onDebug {
+            MockPatientRepository(behavior: .success)
         }
         .cached
     }
@@ -132,13 +131,28 @@ extension Container {
     @MainActor
     var patientValidator: Factory<PatientValidator> {
         self {
-            let dateProvider = Container.shared.dateProvider()
-            return PatientValidator(dateProvider: dateProvider)
+            return PatientValidator(dateProvider: self.dateProvider())
         }
         .cached
     }
 
     // MARK: - Configuration Services
+
+    /// Logging service for structured application logging
+    /// - Returns: LoggingService implementation based on environment
+    /// Logger in production, ConsoleLogger in debug, SilentLogger in tests
+    var loggingService: Factory<LoggingService> {
+        self {
+            SystemLoggingService()
+        }
+        .cached
+        .onDebug {
+            ConsoleLoggingService()
+        }
+        .onTest {
+            SilentLoggingService()
+        }
+    }
 
     /// Feature flag service for configuration management
     /// - Returns: FeatureFlagService implementation
@@ -146,12 +160,14 @@ extension Container {
     @MainActor
     var featureFlagService: Factory<FeatureFlagService> {
         self {
-            #if DEBUG
-                if ProcessInfo.processInfo.environment["USE_DEBUG_FEATURE_FLAGS"] != nil {
-                    return DebugFeatureFlagService()
-                }
-            #endif
             return UserDefaultsFeatureFlagService()
+        }
+        .onDebug {
+            if ProcessInfo.processInfo.environment["USE_DEBUG_FEATURE_FLAGS"] != nil {
+                return DebugFeatureFlagService()
+            } else {
+                return UserDefaultsFeatureFlagService()
+            }
         }
         .cached
     }
@@ -188,6 +204,8 @@ extension ModelContainer {
     /// - Returns: Configured ModelContainer for VetNet data persistence
     /// - Note: CloudKit requires proper entitlements configuration in the project
     static func vetNetContainer() -> ModelContainer {
+        @Injected(\.loggingService) var logger
+
         let schema = Schema([
             PatientEntity.self
             // Future entities will be added here:
@@ -218,7 +236,7 @@ extension ModelContainer {
             )
         } else if cloudKitAvailable {
             // Production configuration with CloudKit
-            print("✅ CloudKit entitlements detected, enabling synchronization")
+            logger.info("CloudKit entitlements detected, enabling synchronization", category: .cloudKit)
             configuration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
@@ -226,9 +244,9 @@ extension ModelContainer {
             )
         } else {
             // Local-only configuration when CloudKit is not available
-            print("⚠️ CloudKit not available, using local storage only")
+            logger.warning("CloudKit not available, using local storage only", category: .cloudKit)
             #if DEBUG
-                print("💡 To enable CloudKit: ensure proper entitlements and Apple Developer account")
+                logger.info("To enable CloudKit: ensure proper entitlements and Apple Developer account", category: .development)
             #endif
             configuration = ModelConfiguration(
                 schema: schema,
@@ -248,21 +266,21 @@ extension ModelContainer {
             return container
         } catch {
             // Enhanced error logging with CloudKit-specific messages
-            print("⚠️ ModelContainer initialization failed: \(error.localizedDescription)")
+            logger.error("ModelContainer initialization failed: \(error.localizedDescription)", category: .data)
 
             // Check for specific CloudKit-related errors
             let errorMessage = error.localizedDescription.lowercased()
             if errorMessage.contains("cloudkit") || errorMessage.contains("icloud") {
-                print("🔍 CloudKit-related error detected:")
-                print("  • Ensure you're signed into iCloud on the device/simulator")
-                print("  • Verify CloudKit container exists in Apple Developer Portal")
-                print("  • Check that the app is properly code signed")
+                logger.error("CloudKit-related error detected", category: .cloudKit)
+                logger.info("• Ensure you're signed into iCloud on the device/simulator", category: .cloudKit)
+                logger.info("• Verify CloudKit container exists in Apple Developer Portal", category: .cloudKit)
+                logger.info("• Check that the app is properly code signed", category: .cloudKit)
             }
 
             // In production, this is a critical error
             // In development, we might want to fall back to local-only storage
             #if DEBUG
-                print("🔧 Attempting fallback to local-only storage...")
+                logger.warning("Attempting fallback to local-only storage...", category: .development)
                 do {
                     let fallbackConfiguration = ModelConfiguration(
                         schema: schema,
@@ -270,11 +288,11 @@ extension ModelContainer {
                         // CloudKit disabled in fallback
                     )
                     let fallbackContainer = try ModelContainer(for: schema, configurations: [fallbackConfiguration])
-                    print("✅ Successfully created local-only ModelContainer")
-                    print("⚠️ Data will not sync across devices in this mode")
+                    logger.info("Successfully created local-only ModelContainer", category: .data)
+                    logger.warning("Data will not sync across devices in this mode", category: .cloudKit)
                     return fallbackContainer
                 } catch {
-                    print("❌ Even local storage failed: \(error.localizedDescription)")
+                    logger.critical("Even local storage failed: \(error.localizedDescription)", category: .data)
                     fatalError("Failed to create ModelContainer even without CloudKit: \(error)")
                 }
             #else
@@ -286,6 +304,8 @@ extension ModelContainer {
     /// Configures CloudKit-specific settings for HIPAA compliance
     /// - Parameter container: The ModelContainer to configure
     private static func configureCloudKitSettings(for container: ModelContainer) {
+        let logger = Container.shared.loggingService()
+
         // CloudKit configuration happens automatically with ModelConfiguration
         // Additional configuration for HIPAA compliance would include:
         // - Custom record zones (handled by cloudKitDatabase parameter)
@@ -293,11 +313,11 @@ extension ModelContainer {
         // - Access control (managed by CloudKit entitlements)
 
         // Log successful CloudKit initialization
-        print("✅ CloudKit configured with VetNetSecure private database")
-        print("📋 HIPAA compliance features enabled:")
-        print("  • End-to-end encryption via private database")
-        print("  • Custom zone isolation for practice data")
-        print("  • Audit trail logging at repository level")
+        logger.info("CloudKit configured with VetNetSecure private database", category: .cloudKit)
+        logger.info("HIPAA compliance features enabled:", category: .cloudKit)
+        logger.info("• End-to-end encryption via private database", category: .cloudKit)
+        logger.info("• Custom zone isolation for practice data", category: .cloudKit)
+        logger.info("• Audit trail logging at repository level", category: .cloudKit)
     }
 
     /// Creates a fallback ModelContainer for development when CloudKit is unavailable
@@ -314,8 +334,9 @@ extension ModelContainer {
             isStoredInMemoryOnly: true // In-memory only for fallback
         )
 
-        print("🔧 Creating fallback ModelContainer (in-memory only)")
-        print("⚠️  Data will not persist between app launches")
+        let logger = Container.shared.loggingService()
+        logger.warning("Creating fallback ModelContainer (in-memory only)", category: .development)
+        logger.warning("Data will not persist between app launches", category: .data)
 
         return try ModelContainer(for: schema, configurations: [configuration])
     }
@@ -323,28 +344,30 @@ extension ModelContainer {
     /// Checks if the app has proper CloudKit entitlements configured
     /// - Returns: True if CloudKit entitlements are present and valid
     private static func hasCloudKitEntitlements() -> Bool {
+        @Injected(\.loggingService) var logger
+
         guard let entitlements = Bundle.main.entitlements else {
-            print("🔍 No entitlements found in app bundle")
+            logger.debug("No entitlements found in app bundle", category: .cloudKit)
             return false
         }
 
         // Check for iCloud services entitlement
         guard let iCloudServices = entitlements["com.apple.developer.icloud-services"] as? [String],
               iCloudServices.contains("CloudKit") else {
-            print("🔍 CloudKit service not found in iCloud services entitlement")
+            logger.debug("CloudKit service not found in iCloud services entitlement", category: .cloudKit)
             return false
         }
 
         // Check for iCloud container identifier
         guard let containerIds = entitlements["com.apple.developer.icloud-container-identifiers"] as? [String],
               !containerIds.isEmpty else {
-            print("🔍 No iCloud container identifiers found")
+            logger.debug("No iCloud container identifiers found", category: .cloudKit)
             return false
         }
 
-        print("✅ CloudKit entitlements validated:")
-        print("  • iCloud services: \(iCloudServices)")
-        print("  • Container IDs: \(containerIds)")
+        logger.info("CloudKit entitlements validated:", category: .cloudKit)
+        logger.debug("• iCloud services: \(iCloudServices)", category: .cloudKit)
+        logger.debug("• Container IDs: \(containerIds)", category: .cloudKit)
 
         return true
     }
