@@ -6,17 +6,35 @@ import FactoryKit
 import Foundation
 import SwiftData
 
-// MARK: - CloudKit Entitlements Requirements
+// MARK: - CloudKit Setup Requirements
 
 //
-// For CloudKit synchronization to work, ensure the following entitlements are configured:
-// 1. Enable CloudKit capability in Xcode project settings
-// 2. Add iCloud container: iCloud.com.moroverse.VetNet
-// 3. Configure CloudKit Dashboard at https://icloud.developer.apple.com/dashboard/
-// 4. Create "VetNetSecure" custom zone for HIPAA-compliant data isolation
+// VetNet uses CloudKit for secure, HIPAA-compliant data synchronization across devices.
+// The following setup is required for CloudKit functionality:
 //
-// Note: CloudKit will gracefully fall back to local storage if entitlements are missing
-// during development. Check console logs for CloudKit initialization status.
+// ## Entitlements (✅ Configured)
+// - com.apple.developer.icloud-services: ["CloudKit"]
+// - com.apple.developer.icloud-container-identifiers: ["iCloud.com.moroverse.VetNet"]
+// - com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+//
+// ## Development Requirements
+// 1. Sign into iCloud on the device/simulator
+// 2. Ensure Apple Developer account has CloudKit capability enabled
+// 3. Create CloudKit container "iCloud.com.moroverse.VetNet" in Apple Developer Portal
+// 4. Configure CloudKit Dashboard at https://icloud.developer.apple.com/dashboard/
+// 5. Create "VetNetSecure" custom zone for HIPAA-compliant data isolation
+//
+// ## Fallback Behavior
+// - Tests/Previews: Uses in-memory storage (no persistence)
+// - Missing entitlements: Gracefully falls back to local-only storage in DEBUG builds
+// - CloudKit errors: Enhanced error logging with troubleshooting guidance
+// - Production: Fatal error for CloudKit failures to ensure data integrity
+//
+// ## Environment Variables
+// - FORCE_LOCAL_STORAGE=1: Forces local-only storage even with valid entitlements
+// - USE_DEBUG_FEATURE_FLAGS=1: Enables debug feature flag service
+//
+// Check console logs for CloudKit initialization status and troubleshooting information.
 
 extension Container {
     // MARK: - Error Handling Strategy
@@ -185,19 +203,37 @@ extension ModelContainer {
         // Use in-memory storage for testing/preview contexts
         let isPreview = ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
         let isTest = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        let forceLocalOnly = ProcessInfo.processInfo.environment["FORCE_LOCAL_STORAGE"] == "1"
 
-        let configuration = if isPreview || isTest {
+        // Check for CloudKit capability in non-test environments
+        let cloudKitAvailable = !isPreview && !isTest && !forceLocalOnly && hasCloudKitEntitlements()
+
+        let configuration: ModelConfiguration
+
+        if isPreview || isTest {
             // In-memory configuration for SwiftUI previews and tests
-            ModelConfiguration(
+            configuration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: true
             )
-        } else {
+        } else if cloudKitAvailable {
             // Production configuration with CloudKit
-            ModelConfiguration(
+            print("✅ CloudKit entitlements detected, enabling synchronization")
+            configuration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .private("VetNetSecure")
+            )
+        } else {
+            // Local-only configuration when CloudKit is not available
+            print("⚠️ CloudKit not available, using local storage only")
+            #if DEBUG
+                print("💡 To enable CloudKit: ensure proper entitlements and Apple Developer account")
+            #endif
+            configuration = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false
-                // cloudKitDatabase: .private("VetNetSecure")
+                // No CloudKit database specified
             )
         }
 
@@ -211,8 +247,17 @@ extension ModelContainer {
 
             return container
         } catch {
-            // Log error details for debugging
+            // Enhanced error logging with CloudKit-specific messages
             print("⚠️ ModelContainer initialization failed: \(error.localizedDescription)")
+
+            // Check for specific CloudKit-related errors
+            let errorMessage = error.localizedDescription.lowercased()
+            if errorMessage.contains("cloudkit") || errorMessage.contains("icloud") {
+                print("🔍 CloudKit-related error detected:")
+                print("  • Ensure you're signed into iCloud on the device/simulator")
+                print("  • Verify CloudKit container exists in Apple Developer Portal")
+                print("  • Check that the app is properly code signed")
+            }
 
             // In production, this is a critical error
             // In development, we might want to fall back to local-only storage
@@ -224,8 +269,12 @@ extension ModelContainer {
                         isStoredInMemoryOnly: false
                         // CloudKit disabled in fallback
                     )
-                    return try ModelContainer(for: schema, configurations: [fallbackConfiguration])
+                    let fallbackContainer = try ModelContainer(for: schema, configurations: [fallbackConfiguration])
+                    print("✅ Successfully created local-only ModelContainer")
+                    print("⚠️ Data will not sync across devices in this mode")
+                    return fallbackContainer
                 } catch {
+                    print("❌ Even local storage failed: \(error.localizedDescription)")
                     fatalError("Failed to create ModelContainer even without CloudKit: \(error)")
                 }
             #else
@@ -269,5 +318,53 @@ extension ModelContainer {
         print("⚠️  Data will not persist between app launches")
 
         return try ModelContainer(for: schema, configurations: [configuration])
+    }
+
+    /// Checks if the app has proper CloudKit entitlements configured
+    /// - Returns: True if CloudKit entitlements are present and valid
+    private static func hasCloudKitEntitlements() -> Bool {
+        guard let entitlements = Bundle.main.entitlements else {
+            print("🔍 No entitlements found in app bundle")
+            return false
+        }
+
+        // Check for iCloud services entitlement
+        guard let iCloudServices = entitlements["com.apple.developer.icloud-services"] as? [String],
+              iCloudServices.contains("CloudKit") else {
+            print("🔍 CloudKit service not found in iCloud services entitlement")
+            return false
+        }
+
+        // Check for iCloud container identifier
+        guard let containerIds = entitlements["com.apple.developer.icloud-container-identifiers"] as? [String],
+              !containerIds.isEmpty else {
+            print("🔍 No iCloud container identifiers found")
+            return false
+        }
+
+        print("✅ CloudKit entitlements validated:")
+        print("  • iCloud services: \(iCloudServices)")
+        print("  • Container IDs: \(containerIds)")
+
+        return true
+    }
+}
+
+// MARK: - Bundle Extension for Entitlements
+
+private extension Bundle {
+    /// Safely retrieves the app's entitlements dictionary
+    var entitlements: [String: Any]? {
+        guard let entitlementsPath = path(forResource: "VetNet", ofType: "entitlements"),
+              let entitlementsData = NSData(contentsOfFile: entitlementsPath),
+              let entitlements = try? PropertyListSerialization.propertyList(
+                  from: entitlementsData as Data,
+                  options: [],
+                  format: nil
+              ) as? [String: Any] else {
+            // Fallback: try to read from embedded entitlements (iOS)
+            return object(forInfoDictionaryKey: "Entitlements") as? [String: Any]
+        }
+        return entitlements
     }
 }

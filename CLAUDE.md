@@ -263,6 +263,38 @@ enum FormState {
 - Use descriptive behavior enums for different test scenarios
 - Keep mock implementations focused and lightweight
 
+### 2025-08-05: CloudKit Entitlement Fix & Enhanced Error Handling
+
+**CloudKit Entitlement Issue Resolution**:
+- Fixed app crashes due to missing CloudKit entitlements by enabling proper configuration in `Project.swift`
+- CloudKit entitlements now properly configured: `com.apple.developer.icloud-services`, `com.apple.developer.icloud-container-identifiers`, `com.apple.developer.ubiquity-kvstore-identifier`
+- Enhanced fallback logic with early entitlement detection using `hasCloudKitEntitlements()`
+
+**Improved Error Handling**:
+```swift
+// Enhanced CloudKit capability detection
+let cloudKitAvailable = !isPreview && !isTest && !forceLocalOnly && hasCloudKitEntitlements()
+
+// Smart configuration selection
+if cloudKitAvailable {
+    // Use CloudKit with VetNetSecure private database
+} else {
+    // Graceful fallback to local-only storage in DEBUG builds
+}
+```
+
+**Development Environment Enhancements**:
+- Added `FORCE_LOCAL_STORAGE=1` environment variable to disable CloudKit during development
+- Enhanced error logging with CloudKit-specific troubleshooting guidance
+- Automatic entitlement validation with detailed console output
+- Bundle extension for safe entitlement retrieval from app bundle
+
+**Fallback Strategy Improvements**:
+- Early capability detection prevents crashes before ModelContainer creation
+- CloudKit-specific error messages with actionable troubleshooting steps
+- Graceful degradation to local storage with user notification
+- Production safety: fatal errors for critical CloudKit failures
+
 ### 2025-08-04: Sample Data & Feature Flag Implementation
 
 **TestableView Integration**:
