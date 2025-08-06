@@ -89,6 +89,27 @@ let project = Project(
                 ],
                 configurations: []
             )
+        ),
+        .target(
+            name: "VetNetUITests",
+            destinations: [.iPad, .iPhone],
+            product: .uiTests,
+            bundleId: "com.moroverse.VetNetUITests",
+            infoPlist: .default,
+            sources: ["App/UITests/**"],
+            resources: [],
+            dependencies: [
+                .target(name: "VetNet")
+            ],
+            settings:
+            .settings(
+                base: [
+                    "SWIFT_VERSION": "6.0",
+                    "SWIFT_APPROACHABLE_CONCURRENCY": true,
+                    "TEST_TARGET_NAME": "VetNet"
+                ],
+                configurations: []
+            )
         )
     ]
 )
