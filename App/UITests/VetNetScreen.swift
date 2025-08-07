@@ -1,6 +1,6 @@
 // VetNetScreen.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-06 15:37 GMT.
+// Created by Daniel Moro on 2025-08-06 17:31 GMT.
 
 import XCTest
 
@@ -43,14 +43,29 @@ class PatientListScreen: VetNetScreen {
 
 /// Patient creation screen object
 class PatientCreationScreen: VetNetScreen {
+    @MainActor
     func enterPatientName(_ name: String) -> PatientCreationScreen {
-        // TODO: Find name field and enter text
-        self
+        // Find the name field using accessibility identifier from PatientFormView.swift
+        let nameField = app.textFields["patient_creation_name_field"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "Patient name field should exist")
+        nameField.tap()
+        nameField.typeText(name)
+        return self
     }
 
+    @MainActor
     func selectSpecies(_ species: String) -> PatientCreationScreen {
-        // TODO: Find species picker and select
-        self
+        // Find and tap the species picker using accessibility identifier
+        let speciesPicker = app.buttons["patient_creation_species_picker"]
+        XCTAssertTrue(speciesPicker.waitForExistence(timeout: 5), "Species picker should exist")
+        speciesPicker.tap()
+
+        // Select the species from the picker wheel or list
+        let speciesOption = app.staticTexts[species]
+        XCTAssertTrue(speciesOption.waitForExistence(timeout: 5), "Species option '\(species)' should exist")
+        speciesOption.tap()
+
+        return self
     }
 
     func selectBreed(_ breed: String) -> PatientCreationScreen {
