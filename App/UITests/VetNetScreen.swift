@@ -84,6 +84,28 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    func enterWeight(_ weight: String) -> PatientCreationScreen {
+        // Find the weight field using accessibility identifier from PatientFormView.swift
+        let weightField = app.textFields["patient_creation_weight_field"]
+        XCTAssertTrue(weightField.waitForExistence(timeout: 5), "Weight field should exist")
+        weightField.tap()
+
+        // Clear existing text (the default "0")
+        if let currentValue = weightField.value as? String, !currentValue.isEmpty {
+            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: currentValue.count)
+            weightField.typeText(deleteString)
+        }
+
+        // Use locale-appropriate decimal separator
+        let locale = Locale.current
+        let decimalSeparator = locale.decimalSeparator ?? "."
+        let localizedWeight = weight.replacingOccurrences(of: ".", with: decimalSeparator)
+
+        weightField.typeText(localizedWeight)
+        return self
+    }
+
+    @MainActor
     func enterOwnerName(_ name: String) -> PatientCreationScreen {
         // Find the owner name field using accessibility identifier from PatientFormView.swift
         let ownerNameField = app.textFields["patient_creation_owner_name_field"]
@@ -112,8 +134,28 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
+    @MainActor
     func assertPatientCreatedSuccessfully() -> PatientCreationScreen {
-        // TODO: Assert success state
-        self
+        // After successful save, the form sheet should be dismissed
+        // Check that the patient creation form elements are no longer visible
+        let nameField = app.textFields["patient_creation_name_field"]
+
+        // Wait for the form to disappear (sheet dismissed)
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: nameField
+        )
+        let result = XCTWaiter().wait(for: [expectation], timeout: 10)
+
+        XCTAssertEqual(result, .completed, "Patient creation form should be dismissed after successful save")
+
+        // Verify we're back on the patient list
+        let patientListTitle = app.navigationBars["Patient Details"]
+        XCTAssertTrue(patientListTitle.exists, "Should be back on patient list after successful save")
+
+        // TODO: Once patient list is implemented, verify the newly created patient appears in the list
+        // Example: XCTAssertTrue(app.cells["Buddy"].exists, "Newly created patient should appear in the list")
+
+        return self
     }
 }

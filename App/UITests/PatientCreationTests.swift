@@ -20,6 +20,7 @@ final class PatientCreationTests: VetNetUITestCase {
             .selectBreed("Labrador Retriever")
             .enterOwnerName("John Doe")
             .enterOwnerPhone("555-123-4567")
+            .enterWeight("25.5") // Add valid weight for a Labrador
             .tapSave()
 
         // Verify success

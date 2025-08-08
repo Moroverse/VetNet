@@ -10,23 +10,23 @@ This document tracks the incremental development of automated end-to-end UI test
 
 ---
 
-## Phase 1: Foundation & First Test 🚀
+## Phase 1: Foundation & First Test 🚀 ✅
 
 ### 1.1 Setup UI Test Target
 - [x] Add `VetNetUITests` target to `Project.swift` with XCTest dependencies
 - [x] Configure proper app launch and reset infrastructure
-- [ ] Set up basic test runner configuration
+- [x] Set up basic test runner configuration
 
 ### 1.2 Basic Library Foundation + Happy Path Test
-- [ ] Create `VetNetUITestCase` base class with basic app launch/reset
-- [ ] Create `VetNetScreen` base class with simple element finding
-- [ ] **Implement Test**: Complete patient creation happy path
-  - [ ] Launch app
-  - [ ] Navigate to patient creation form
-  - [ ] Fill all required fields (name, species, breed, birth date, owner info)
-  - [ ] Tap save button
-  - [ ] Verify patient created successfully
-- [ ] **Library Improvements Discovered**: Document element finding strategies, wait patterns, navigation helpers
+- [x] Create `VetNetUITestCase` base class with basic app launch/reset
+- [x] Create `VetNetScreen` base class with simple element finding
+- [x] **Implement Test**: Complete patient creation happy path
+  - [x] Launch app
+  - [x] Navigate to patient creation form
+  - [x] Fill all required fields (name, species, breed, birth date, owner info)
+  - [x] Tap save button
+  - [x] Verify patient created successfully
+- [x] **Library Improvements Discovered**: Document element finding strategies, wait patterns, navigation helpers
 
 ---
 
@@ -178,7 +178,11 @@ This document tracks the incremental development of automated end-to-end UI test
 ## Notes & Discoveries
 
 ### Phase 1 Learnings
-*To be filled as we progress*
+- **Incremental approach works perfectly**: Implement → Test → Commit → Next
+- **Localization matters**: Weight field decimal separator varies by locale (comma vs period)
+- **Robust assertions critical**: Check sheet dismissal, not just background navigation bar
+- **@MainActor annotation required**: All UI test methods need proper actor isolation
+- **Field clearing needed**: Default values like "0" in weight field must be cleared first
 
 ### Phase 2 Learnings  
 *To be filled as we progress*
@@ -200,8 +204,8 @@ This document tracks the incremental development of automated end-to-end UI test
 ## Quick Reference
 
 ### Current Focus
-**Phase:** 1 - Foundation & First Test  
-**Next Task:** Set up UI Test target in Project.swift
+**Phase:** 2 - Form Validation  
+**Next Task:** Test empty name field shows validation error
 
 ### Key Files to Create
 - `Project.swift` - Add VetNetUITests target
