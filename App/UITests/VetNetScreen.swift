@@ -93,9 +93,14 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
+    @MainActor
     func enterOwnerPhone(_ phone: String) -> PatientCreationScreen {
-        // TODO: Find owner phone field and enter text
-        self
+        // Find the owner phone field using accessibility identifier from PatientFormView.swift
+        let ownerPhoneField = app.textFields["patient_creation_owner_phone_field"]
+        XCTAssertTrue(ownerPhoneField.waitForExistence(timeout: 5), "Owner phone field should exist")
+        ownerPhoneField.tap()
+        ownerPhoneField.typeText(phone)
+        return self
     }
 
     func tapSave() -> PatientCreationScreen {
