@@ -68,7 +68,7 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
-    @Main
+    @MainActor
     func selectBreed(_ breed: String) -> PatientCreationScreen {
         // Find and tap the breed picker using accessibility identifier
         let breedPicker = app.buttons["patient_creation_breed_picker"]
@@ -83,9 +83,14 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
+    @MainActor
     func enterOwnerName(_ name: String) -> PatientCreationScreen {
-        // TODO: Find owner name field and enter text
-        self
+        // Find the owner name field using accessibility identifier from PatientFormView.swift
+        let ownerNameField = app.textFields["patient_creation_owner_name_field"]
+        XCTAssertTrue(ownerNameField.waitForExistence(timeout: 5), "Owner name field should exist")
+        ownerNameField.tap()
+        ownerNameField.typeText(name)
+        return self
     }
 
     func enterOwnerPhone(_ phone: String) -> PatientCreationScreen {
