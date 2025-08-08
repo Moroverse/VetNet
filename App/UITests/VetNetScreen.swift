@@ -103,9 +103,13 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
+    @MainActor
     func tapSave() -> PatientCreationScreen {
-        // TODO: Find and tap save button
-        self
+        // Find and tap the save button using accessibility identifier from PatientFormView.swift
+        let saveButton = app.buttons["patient_creation_save_button"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 5), "Save button should exist")
+        saveButton.tap()
+        return self
     }
 
     func assertPatientCreatedSuccessfully() -> PatientCreationScreen {
