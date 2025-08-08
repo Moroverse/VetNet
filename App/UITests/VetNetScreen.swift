@@ -68,9 +68,19 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
+    @Main
     func selectBreed(_ breed: String) -> PatientCreationScreen {
-        // TODO: Find breed picker and select
-        self
+        // Find and tap the breed picker using accessibility identifier
+        let breedPicker = app.buttons["patient_creation_breed_picker"]
+        XCTAssertTrue(breedPicker.waitForExistence(timeout: 5), "Breed picker should exist")
+        breedPicker.tap()
+
+        // Select the breed from the picker
+        let breedOption = app.buttons[breed].firstMatch
+        XCTAssertTrue(breedOption.waitForExistence(timeout: 5), "Breed option '\(breed)' should exist")
+        breedOption.tap()
+
+        return self
     }
 
     func enterOwnerName(_ name: String) -> PatientCreationScreen {

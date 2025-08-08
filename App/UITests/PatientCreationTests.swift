@@ -6,23 +6,23 @@ import XCTest
 
 /// Basic patient creation UI tests using navigation-based approach
 final class PatientCreationTests: VetNetUITestCase {
-     @MainActor
-     func testCreatePatientHappyPath() async throws {
-         // Navigate to patient creation (real user flow)
-         let patientCreationScreen = app
-             .navigateToPatientList()
-             .tapCreateNewPatient()
+    @MainActor
+    func testCreatePatientHappyPath() async throws {
+        // Navigate to patient creation (real user flow)
+        let patientCreationScreen = app
+            .navigateToPatientList()
+            .tapCreateNewPatient()
 
-         // Fill in patient details and save
-         patientCreationScreen
-             .enterPatientName("Buddy")
-             .selectSpecies("Dog")
-             .selectBreed("Labrador")
-             .enterOwnerName("John Doe")
-             .enterOwnerPhone("555-123-4567")
-             .tapSave()
+        // Fill in patient details and save
+        patientCreationScreen
+            .enterPatientName("Buddy")
+            .selectSpecies("Dog")
+            .selectBreed("Labrador Retriever")
+            .enterOwnerName("John Doe")
+            .enterOwnerPhone("555-123-4567")
+            .tapSave()
 
-         // Verify success
-         patientCreationScreen.assertPatientCreatedSuccessfully()
-     }
+        // Verify success
+        patientCreationScreen.assertPatientCreatedSuccessfully()
+    }
 }
