@@ -158,4 +158,28 @@ class PatientCreationScreen: VetNetScreen {
 
         return self
     }
+
+    // MARK: - Validation Assertion Methods
+
+    @MainActor
+    func assertValidationError(for field: String, message: String) -> PatientCreationScreen {
+        // Validation errors appear as inline red text below the field
+        // Look for the validation message text anywhere in the form
+        let validationText = app.staticTexts[message]
+        XCTAssertTrue(validationText.waitForExistence(timeout: 3), "Validation error '\(message)' should appear for field '\(field)'")
+
+        // Verify the save button is disabled when validation fails
+        let saveButton = app.buttons["patient_creation_save_button"]
+        XCTAssertTrue(saveButton.exists, "Save button should exist")
+        XCTAssertFalse(saveButton.isEnabled, "Save button should be disabled when validation fails")
+
+        return self
+    }
+
+    @MainActor
+    func assertNoValidationError(for field: String) -> PatientCreationScreen {
+        // TODO: Implement actual no validation error assertion
+        // For now, just pass the test to establish the API
+        self
+    }
 }

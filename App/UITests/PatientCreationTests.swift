@@ -26,4 +26,20 @@ final class PatientCreationTests: VetNetUITestCase {
         // Verify success
         patientCreationScreen.assertPatientCreatedSuccessfully()
     }
+
+    // MARK: - Phase 2: Form Validation Tests
+
+    @MainActor
+    func testEmptyNameValidation() async throws {
+        let patientCreationScreen = app
+            .navigateToPatientList()
+            .tapCreateNewPatient()
+
+        // Test: Empty name field should show validation error
+        // Note: We don't need to tap save since validation appears immediately
+        // and save button is disabled when form is invalid
+        patientCreationScreen
+            .enterPatientName("") // Empty name - validation should appear immediately
+            .assertValidationError(for: "name", message: "This field cannot be empty")
+    }
 }
