@@ -2,3 +2,4 @@
 swiftformat = "latest"
 swiftlint = "latest"
 tuist = "latest"
+uv = "latest"

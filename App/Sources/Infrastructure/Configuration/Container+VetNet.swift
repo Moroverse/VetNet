@@ -90,9 +90,8 @@ extension Container {
             let featureFlagService = self.featureFlagService()
 
             if featureFlagService.isEnabled(.useMockData) {
-                // Force real data in release builds
-                let context = Container.shared.modelContext()
-                return SwiftDataPatientRepository(modelContext: context)
+                // Return mock when flag is enabled (fixing the bug where it returned SwiftData)
+                return MockPatientRepository(behavior: .success)
             } else {
                 let context = Container.shared.modelContext()
                 return SwiftDataPatientRepository(modelContext: context)

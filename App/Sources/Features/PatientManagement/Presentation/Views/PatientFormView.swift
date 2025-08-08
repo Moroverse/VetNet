@@ -13,7 +13,8 @@ import TestableView
 
 @ViewInspectable
 struct PatientFormView: View {
-    @State private var viewModel: PatientFormViewModel
+    // Optional view model for lazy initialization
+    @State private var viewModel: PatientFormViewModel?
     @State private var showingAlert = false
     let mode: PatientFormMode
     let onResult: (PatientFormResult) -> Void
@@ -23,22 +24,22 @@ struct PatientFormView: View {
         onResult: @escaping (PatientFormResult) -> Void
     ) {
         self.mode = mode
-        let viewModel = if let patient = mode.patient {
-            PatientFormViewModel(value: patient)
-        } else {
-            PatientFormViewModel(value: PatientComponents())
-        }
-        _viewModel = State(initialValue: viewModel)
         self.onResult = onResult
+        // No view model creation here - will be done in onAppear
+    }
+
+    private var effectiveViewModel: PatientFormViewModel {
+        // Provide fallback for when viewModel is nil (shouldn't happen after onAppear)
+        viewModel ?? PatientFormViewModel(value: PatientComponents())
     }
 
     var body: some View {
         Form {
-            PatientInfoSection(viewModel: viewModel)
+            PatientInfoSection(viewModel: effectiveViewModel)
 
-            OwnerInfoSection(viewModel: viewModel)
+            OwnerInfoSection(viewModel: effectiveViewModel)
 
-            MedicalInfoSection(viewModel: viewModel)
+            MedicalInfoSection(viewModel: effectiveViewModel)
         }
         .navigationTitle(mode.title)
         .navigationBarTitleDisplayMode(.large)
@@ -46,39 +47,49 @@ struct PatientFormView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save") {
                     Task {
-                        if let patient = await viewModel.save() {
-                            let result: PatientFormResult = viewModel.isEditing ? .updated(patient) : .created(patient)
+                        if let patient = await effectiveViewModel.save() {
+                            let result: PatientFormResult = effectiveViewModel.isEditing ? .updated(patient) : .created(patient)
                             onResult(result)
                         }
                     }
                 }
-                .disabled(!viewModel.canSave || viewModel.formState == .saving)
+                .disabled(!effectiveViewModel.canSave || effectiveViewModel.formState == .saving)
                 .accessibilityIdentifier("patient_creation_save_button")
             }
         }
-        .onChange(of: viewModel.formState.isError) { _, isError in
+        .onChange(of: effectiveViewModel.formState.isError) { _, isError in
             showingAlert = isError
         }
         .alert("Error", isPresented: $showingAlert) {
-            if viewModel.formState.isRetryable {
+            if effectiveViewModel.formState.isRetryable {
                 Button("Retry") {
                     Task {
-                        if let patient = await viewModel.retry() {
-                            let result: PatientFormResult = viewModel.isEditing ? .updated(patient) : .created(patient)
+                        if let patient = await effectiveViewModel.retry() {
+                            let result: PatientFormResult = effectiveViewModel.isEditing ? .updated(patient) : .created(patient)
                             onResult(result)
                         }
                     }
                 }
                 Button("Cancel") {
-                    viewModel.clearError()
+                    effectiveViewModel.clearError()
                 }
             } else {
                 Button("OK") {
-                    viewModel.clearError()
+                    effectiveViewModel.clearError()
                 }
             }
         } message: {
-            Text(viewModel.formState.errorMessage ?? "An unknown error occurred")
+            Text(effectiveViewModel.formState.errorMessage ?? "An unknown error occurred")
+        }
+        .onAppear {
+            // Initialize view model only once using guard
+            if viewModel == nil {
+                viewModel = if let patient = mode.patient {
+                    PatientFormViewModel(value: patient)
+                } else {
+                    PatientFormViewModel(value: PatientComponents())
+                }
+            }
         }
         .inspectable(self)
     }

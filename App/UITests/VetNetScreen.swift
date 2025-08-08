@@ -60,8 +60,8 @@ class PatientCreationScreen: VetNetScreen {
         XCTAssertTrue(speciesPicker.waitForExistence(timeout: 5), "Species picker should exist")
         speciesPicker.tap()
 
-        // Select the species from the picker wheel or list
-        let speciesOption = app.staticTexts[species]
+        // Select the species from the picker - use buttons like Belfalas does
+        let speciesOption = app.buttons[species].firstMatch
         XCTAssertTrue(speciesOption.waitForExistence(timeout: 5), "Species option '\(species)' should exist")
         speciesOption.tap()
 
