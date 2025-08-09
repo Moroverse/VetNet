@@ -48,6 +48,9 @@ tuist test VetNetTests
 cd Modules/SwiftUIRouting && swift test
 ```
 
+## Development Rules
+Always follow rules in @.claude/rules.md
+
 ## Architecture Overview
 
 ### Modular Structure
@@ -178,7 +181,6 @@ This is a greenfield iOS project with comprehensive architecture documentation a
   - `SWIFT_STRICT_CONCURRENCY`: "Complete"
 
 **Important**: With `SWIFT_DEFAULT_ACTOR_ISOLATION: "MainActor"`, most classes are implicitly MainActor-isolated, eliminating the need for explicit `@MainActor` annotations in most UI code. Use `nonisolated` when opting out for background operations.
-```
 
 ## QuickForm Implementation Guidelines
 
