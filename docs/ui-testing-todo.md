@@ -32,18 +32,18 @@ This document tracks the incremental development of automated end-to-end UI test
 
 ## Phase 2: Form Validation 📝
 
-### 2.1 Validation Error Test + Library Enhancements
-- [ ] **Implement Test**: Name field validation
-  - [ ] Test empty name field → show validation error
-  - [ ] Test name too short → show validation error
-  - [ ] Test name too long → show validation error
-- [ ] **Library Improvements**: Custom assertions for validation errors, better error message detection
+### 2.1 Validation Error Test + Library Enhancements ✅
+- [x] **Implement Test**: Name field validation
+  - [x] Test empty name field → show validation error
+  - [x] Test name too short → show validation error
+  - [x] Test name too long → show validation error
+- [x] **Library Improvements**: Custom assertions for validation errors, better error message detection
 
-### 2.2 Date Validation Test + Enhanced Waits
-- [ ] **Implement Test**: Birth date validation
-  - [ ] Test future date selection → show validation error
-  - [ ] Test valid past date → no error
-- [ ] **Library Improvements**: Date picker interaction helpers, calendar navigation support
+### 2.2 Date Validation Test + Enhanced Waits ✅
+- [x] **Implement Test**: Birth date validation
+  - [x] Test future date selection → show validation error
+  - [x] Test valid past date → no error (covered by happy path)
+- [x] **Library Improvements**: Date picker interaction helpers, calendar navigation support, deterministic date/time/locale setup
 
 ### 2.3 Species-Breed Dependency Test + Dynamic UI Handling
 - [ ] **Implement Test**: Species selection triggers breed list update
@@ -185,7 +185,13 @@ This document tracks the incremental development of automated end-to-end UI test
 - **Field clearing needed**: Default values like "0" in weight field must be cleared first
 
 ### Phase 2 Learnings  
-*To be filled as we progress*
+- **Deterministic dependencies crucial**: Fixed date/time/locale prevents flaky tests from locale/date formatting variations
+- **Environment variables effective**: Using `FIXED_DATE` and `TZ` environment variables with app startup parsing works well
+- **FactoryKit injection pattern**: Dependency injection at Container level allows clean test environment setup
+- **Date picker interaction refined**: iOS date picker requires month/year selection first, then day selection
+- **Validation message format matters**: Exact message matching works better than partial with deterministic setup
+- **Test consolidation beneficial**: Merging related validation tests (empty, too short, too long) into single test improves execution speed
+- **Fixed date simplifies test logic**: With known date "2023-08-09", selecting future dates like "September 15, 2023" is straightforward
 
 ### Phase 3 Learnings
 *To be filled as we progress*
@@ -204,8 +210,8 @@ This document tracks the incremental development of automated end-to-end UI test
 ## Quick Reference
 
 ### Current Focus
-**Phase:** 2 - Form Validation  
-**Next Task:** Test empty name field shows validation error
+**Phase:** 2.3 - Species-Breed Dependency Testing  
+**Next Task:** Implement species selection triggers breed list update
 
 ### Key Files to Create
 - `Project.swift` - Add VetNetUITests target

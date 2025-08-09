@@ -207,6 +207,7 @@ final class PatientFormViewModel: Validatable {
             microchipNumber.value = value.microchipNumber
             notes.value = value.notes
         } else {
+            birthDate.value = dateProvider.now()
             // For new patients, ensure breed options match default species (dog)
             breed.allValues = species.value.availableBreeds
             generateMedicalID()

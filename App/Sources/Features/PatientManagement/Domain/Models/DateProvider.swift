@@ -28,3 +28,25 @@ struct SystemDateProvider: DateProvider {
         .current
     }
 }
+
+// MARK: - Fixed Date Provider
+
+/// Testing implementation using fixed date/time for deterministic UI tests
+struct FixedDateProvider: DateProvider {
+    private let fixedDate: Date
+
+    nonisolated init(fixedDate: Date) {
+        self.fixedDate = fixedDate
+    }
+
+    func now() -> Date {
+        fixedDate
+    }
+
+    var calendar: Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.locale = Locale(identifier: "en_US_POSIX")
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        return cal
+    }
+}

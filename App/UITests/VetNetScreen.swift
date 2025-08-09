@@ -126,6 +126,7 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func tapSave() -> PatientCreationScreen {
         // Find and tap the save button using accessibility identifier from PatientFormView.swift
         let saveButton = app.buttons["patient_creation_save_button"]
@@ -135,6 +136,7 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func assertPatientCreatedSuccessfully() -> PatientCreationScreen {
         // After successful save, the form sheet should be dismissed
         // Check that the patient creation form elements are no longer visible
@@ -159,9 +161,65 @@ class PatientCreationScreen: VetNetScreen {
         return self
     }
 
+    // MARK: - Date Picker Interaction Methods
+
+    @MainActor
+    func selectFutureBirthDate() -> PatientCreationScreen {
+        // With fixed date "2023-08-09T08:00:00Z", we can select a specific future date
+        // Let's select September 15, 2023 (clearly in the future)
+
+        // Tap on the date picker to open it
+        let datePicker = app.buttons["Date Picker"].firstMatch
+        XCTAssertTrue(datePicker.waitForExistence(timeout: 5), "Date picker should exist")
+        datePicker.tap()
+
+        // Find and tap the month/year button (should show "August 2023" initially)
+        let monthYearButton = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '2023'")).firstMatch
+        XCTAssertTrue(monthYearButton.waitForExistence(timeout: 3), "Month/Year button should exist")
+        monthYearButton.tap()
+
+        // Adjust picker wheels to select September 2023
+        // swiftformat:disable:next isEmpty
+        if app.pickerWheels.count > 0 {
+            // First picker wheel is the month - select September
+            app.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "September")
+        }
+
+        // Year should already be 2023, but ensure it's set
+        // swiftformat:disable:next isEmpty
+        if app.pickerWheels.count > 1 {
+            // Second picker wheel is the year
+            app.pickerWheels.element(boundBy: 1).adjust(toPickerWheelValue: "2023")
+        }
+
+        // Confirm month/year selection
+        let septemberText = app.staticTexts["September 2023"].firstMatch
+        if septemberText.waitForExistence(timeout: 2) {
+            septemberText.tap()
+        }
+
+        // Select day 15
+        let day15Button = app.staticTexts["15"].firstMatch
+        if day15Button.waitForExistence(timeout: 2) {
+            day15Button.tap()
+        }
+
+        // Dismiss the picker
+        let dismissButton = app.buttons["PopoverDismissRegion"].firstMatch
+        if dismissButton.waitForExistence(timeout: 2) {
+            dismissButton.tap()
+        } else {
+            // Alternative: tap outside the picker
+            app.tap()
+        }
+
+        return self
+    }
+
     // MARK: - Validation Assertion Methods
 
     @MainActor
+    @discardableResult
     func assertValidationError(for field: String, message: String) -> PatientCreationScreen {
         // Validation errors appear as inline red text below the field
         // Look for the validation message text anywhere in the form

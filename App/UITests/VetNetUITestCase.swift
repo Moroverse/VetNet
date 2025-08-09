@@ -22,6 +22,20 @@ class VetNetUITestCase: XCTestCase {
         // Initialize and launch the app on main actor
         app = await Task { @MainActor in
             let application = XCUIApplication()
+
+            // Set deterministic environment for UI tests
+            application.launchArguments = [
+                "UI_TESTING",
+                "-AppleLanguages", "(en)",
+                "-AppleLocale", "en_US_POSIX"
+            ]
+
+            // Set fixed date and timezone for deterministic behavior
+            application.launchEnvironment = [
+                "TZ": "UTC",
+                "FIXED_DATE": "2023-08-09T08:00:00Z" // Fixed date: August 9, 2023, 8:00 AM UTC
+            ]
+
             application.launch()
             return application
         }.value

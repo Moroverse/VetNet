@@ -48,4 +48,19 @@ final class PatientCreationTests: VetNetUITestCase {
             .enterPatientName(String(repeating: "A", count: 51)) // 51 characters - too long
             .assertValidationError(for: "name", message: "This field must not exceed 50 characters")
     }
+
+    // MARK: - Phase 2.2: Birth Date Validation Tests
+
+    @MainActor
+    func testFutureBirthDateValidation() async throws {
+        let patientCreationScreen = app
+            .navigateToPatientList()
+            .tapCreateNewPatient()
+
+        // Test: Future birth date should show validation error
+        // With fixed date "2023-08-09T08:00:00Z", validation message is deterministic
+        patientCreationScreen
+            .selectFutureBirthDate()
+            .assertValidationError(for: "birthDate", message: "Date must be before 8/9/2023, 8:00 AM")
+    }
 }

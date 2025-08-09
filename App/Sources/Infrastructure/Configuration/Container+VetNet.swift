@@ -117,9 +117,21 @@ extension Container {
     /// Date provider service for testable date operations
     /// - Returns: DateProvider implementation
     /// - Note: Cached for consistent date behavior across app
+    /// - UI Test Mode: Uses FixedDateProvider with FIXED_DATE environment variable
     var dateProvider: Factory<DateProvider> {
         self {
-            SystemDateProvider()
+            // Check for UI testing environment with fixed date
+            if ProcessInfo.processInfo.arguments.contains("UI_TESTING"),
+               let fixedDateString = ProcessInfo.processInfo.environment["FIXED_DATE"] {
+                // Parse the ISO date string
+                let formatter = ISO8601DateFormatter()
+                if let fixedDate = formatter.date(from: fixedDateString) {
+                    return FixedDateProvider(fixedDate: fixedDate)
+                }
+            }
+
+            // Default to system date provider
+            return SystemDateProvider()
         }
         .cached
     }
