@@ -9,7 +9,7 @@ class VetNetUITestCase: XCTestCase {
     // MARK: - Properties
 
     /// The main application instance for testing
-    var app: XCUIApplication!
+    private(set) var app: XCUIApplication!
 
     // MARK: - Setup & Teardown
 
