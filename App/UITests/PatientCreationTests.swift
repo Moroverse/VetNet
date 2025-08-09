@@ -63,4 +63,38 @@ final class PatientCreationTests: VetNetUITestCase {
             .selectFutureBirthDate()
             .assertValidationError(for: "birthDate", message: "Date must be before 8/9/2023, 8:00 AM")
     }
+
+    // MARK: - Phase 2.3: Species-Breed Dependency Tests
+
+    @MainActor
+    func testSpeciesBreedDependency() async throws {
+        let patientCreationScreen = app
+            .navigateToPatientList()
+            .tapCreateNewPatient()
+
+        // Test: Dog species should show dog breeds
+        patientCreationScreen
+            .selectSpecies("Dog")
+            .assertBreedPickerContains(["Labrador Retriever", "German Shepherd", "Golden Retriever", "Bulldog", "Poodle", "Mixed Breed"])
+
+        // Test: Cat species should show cat breeds
+        patientCreationScreen
+            .selectSpecies("Cat")
+            .assertBreedPickerContains(["Persian", "Siamese", "Maine Coon", "British Shorthair", "Ragdoll", "Mixed Breed"])
+
+        // Test: Bird species should show bird breeds
+        patientCreationScreen
+            .selectSpecies("Bird")
+            .assertBreedPickerContains(["Parrot", "Cockatiel", "Lovebird", "Canary", "Other Bird"])
+
+        // Test: Rabbit species should show rabbit breeds
+        patientCreationScreen
+            .selectSpecies("Rabbit")
+            .assertBreedPickerContains(["Holland Lop", "Dutch", "Rex", "Angora", "Mini", "Mixed Breed"])
+
+        // Test: Other species should show other breeds
+        patientCreationScreen
+            .selectSpecies("Other")
+            .assertBreedPickerContains(["Unknown"])
+    }
 }

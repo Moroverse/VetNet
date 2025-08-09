@@ -9,7 +9,7 @@ class VetNetUITestCase: XCTestCase {
     // MARK: - Properties
 
     /// The main application instance for testing
-    private(set) var app: XCUIApplication!
+    private(set) var app: XCUIApplication! // swiftlint:disable:this test_case_accessibility
 
     // MARK: - Setup & Teardown
 

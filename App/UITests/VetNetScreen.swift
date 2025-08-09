@@ -20,7 +20,7 @@ extension XCUIApplication {
     func navigateToPatientList() -> PatientListScreen {
         // App already starts on patient list, just wait for it to load
         let patientListTitle = navigationBars["Patient Details"]
-        XCTAssertTrue(patientListTitle.waitForExistence(timeout: 5), "Patient list should be displayed")
+        XCTAssertTrue(patientListTitle.waitForExistence(timeout: 2), "Patient list should be displayed")
         return PatientListScreen(app: self)
     }
 }
@@ -34,7 +34,7 @@ class PatientListScreen: VetNetScreen {
     func tapCreateNewPatient() -> PatientCreationScreen {
         // Find and tap the "Add" button
         let addButton = app.buttons["Add"]
-        XCTAssertTrue(addButton.waitForExistence(timeout: 5), "Add button should exist")
+        XCTAssertTrue(addButton.waitForExistence(timeout: 2), "Add button should exist")
         addButton.tap()
 
         return PatientCreationScreen(app: app)
@@ -47,7 +47,7 @@ class PatientCreationScreen: VetNetScreen {
     func enterPatientName(_ name: String) -> PatientCreationScreen {
         // Find the name field using accessibility identifier from PatientFormView.swift
         let nameField = app.textFields["patient_creation_name_field"]
-        XCTAssertTrue(nameField.waitForExistence(timeout: 5), "Patient name field should exist")
+        XCTAssertTrue(nameField.waitForExistence(timeout: 2), "Patient name field should exist")
         nameField.tap()
         nameField.typeText(name)
         return self
@@ -57,12 +57,12 @@ class PatientCreationScreen: VetNetScreen {
     func selectSpecies(_ species: String) -> PatientCreationScreen {
         // Find and tap the species picker using accessibility identifier
         let speciesPicker = app.buttons["patient_creation_species_picker"]
-        XCTAssertTrue(speciesPicker.waitForExistence(timeout: 5), "Species picker should exist")
+        XCTAssertTrue(speciesPicker.waitForExistence(timeout: 2), "Species picker should exist")
         speciesPicker.tap()
 
         // Select the species from the picker - use buttons like Belfalas does
         let speciesOption = app.buttons[species].firstMatch
-        XCTAssertTrue(speciesOption.waitForExistence(timeout: 5), "Species option '\(species)' should exist")
+        XCTAssertTrue(speciesOption.waitForExistence(timeout: 2), "Species option '\(species)' should exist")
         speciesOption.tap()
 
         return self
@@ -72,12 +72,12 @@ class PatientCreationScreen: VetNetScreen {
     func selectBreed(_ breed: String) -> PatientCreationScreen {
         // Find and tap the breed picker using accessibility identifier
         let breedPicker = app.buttons["patient_creation_breed_picker"]
-        XCTAssertTrue(breedPicker.waitForExistence(timeout: 5), "Breed picker should exist")
+        XCTAssertTrue(breedPicker.waitForExistence(timeout: 2), "Breed picker should exist")
         breedPicker.tap()
 
         // Select the breed from the picker
         let breedOption = app.buttons[breed].firstMatch
-        XCTAssertTrue(breedOption.waitForExistence(timeout: 5), "Breed option '\(breed)' should exist")
+        XCTAssertTrue(breedOption.waitForExistence(timeout: 2), "Breed option '\(breed)' should exist")
         breedOption.tap()
 
         return self
@@ -87,7 +87,7 @@ class PatientCreationScreen: VetNetScreen {
     func enterWeight(_ weight: String) -> PatientCreationScreen {
         // Find the weight field using accessibility identifier from PatientFormView.swift
         let weightField = app.textFields["patient_creation_weight_field"]
-        XCTAssertTrue(weightField.waitForExistence(timeout: 5), "Weight field should exist")
+        XCTAssertTrue(weightField.waitForExistence(timeout: 2), "Weight field should exist")
         weightField.tap()
 
         // Clear existing text (the default "0")
@@ -109,7 +109,7 @@ class PatientCreationScreen: VetNetScreen {
     func enterOwnerName(_ name: String) -> PatientCreationScreen {
         // Find the owner name field using accessibility identifier from PatientFormView.swift
         let ownerNameField = app.textFields["patient_creation_owner_name_field"]
-        XCTAssertTrue(ownerNameField.waitForExistence(timeout: 5), "Owner name field should exist")
+        XCTAssertTrue(ownerNameField.waitForExistence(timeout: 2), "Owner name field should exist")
         ownerNameField.tap()
         ownerNameField.typeText(name)
         return self
@@ -119,7 +119,7 @@ class PatientCreationScreen: VetNetScreen {
     func enterOwnerPhone(_ phone: String) -> PatientCreationScreen {
         // Find the owner phone field using accessibility identifier from PatientFormView.swift
         let ownerPhoneField = app.textFields["patient_creation_owner_phone_field"]
-        XCTAssertTrue(ownerPhoneField.waitForExistence(timeout: 5), "Owner phone field should exist")
+        XCTAssertTrue(ownerPhoneField.waitForExistence(timeout: 2), "Owner phone field should exist")
         ownerPhoneField.tap()
         ownerPhoneField.typeText(phone)
         return self
@@ -130,7 +130,7 @@ class PatientCreationScreen: VetNetScreen {
     func tapSave() -> PatientCreationScreen {
         // Find and tap the save button using accessibility identifier from PatientFormView.swift
         let saveButton = app.buttons["patient_creation_save_button"]
-        XCTAssertTrue(saveButton.waitForExistence(timeout: 5), "Save button should exist")
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 2), "Save button should exist")
         saveButton.tap()
         return self
     }
@@ -170,12 +170,12 @@ class PatientCreationScreen: VetNetScreen {
 
         // Tap on the date picker to open it
         let datePicker = app.buttons["Date Picker"].firstMatch
-        XCTAssertTrue(datePicker.waitForExistence(timeout: 5), "Date picker should exist")
+        XCTAssertTrue(datePicker.waitForExistence(timeout: 2), "Date picker should exist")
         datePicker.tap()
 
         // Find and tap the month/year button (should show "August 2023" initially)
         let monthYearButton = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '2023'")).firstMatch
-        XCTAssertTrue(monthYearButton.waitForExistence(timeout: 3), "Month/Year button should exist")
+        XCTAssertTrue(monthYearButton.waitForExistence(timeout: 2), "Month/Year button should exist")
         monthYearButton.tap()
 
         // Adjust picker wheels to select September 2023
@@ -239,5 +239,31 @@ class PatientCreationScreen: VetNetScreen {
         // TODO: Implement actual no validation error assertion
         // For now, just pass the test to establish the API
         self
+    }
+
+    @MainActor
+    @discardableResult
+    func assertBreedPickerContains(_ expectedBreeds: [String]) -> PatientCreationScreen {
+        // First, tap on the breed picker to open it
+        let breedPicker = app.buttons["patient_creation_breed_picker"]
+        XCTAssertTrue(breedPicker.waitForExistence(timeout: 2), "Breed picker should exist")
+        breedPicker.tap()
+
+        // Verify each expected breed is present in the picker
+        for breed in expectedBreeds {
+            let breedOption = app.buttons[breed]
+            XCTAssertTrue(breedOption.exists, "Breed '\(breed)' should be available in the picker")
+        }
+
+        // Dismiss the picker by tapping outside or the dismiss region
+        let dismissButton = app.buttons["PopoverDismissRegion"].firstMatch
+        if dismissButton.waitForExistence(timeout: 2) {
+            dismissButton.tap()
+        } else {
+            // Alternative: tap on a safe area outside the picker
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.1)).tap()
+        }
+
+        return self
     }
 }
