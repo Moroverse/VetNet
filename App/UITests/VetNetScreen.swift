@@ -19,7 +19,7 @@ extension XCUIApplication {
     /// Navigate to the patient list screen (app starts here)
     func navigateToPatientList() -> PatientListScreen {
         // App already starts on patient list, just wait for it to load
-        let patientListTitle = navigationBars["Patient Details"]
+        let patientListTitle = navigationBars["Patients"]
         XCTAssertTrue(patientListTitle.waitForExistence(timeout: 2), "Patient list should be displayed")
         return PatientListScreen(app: self)
     }
@@ -137,7 +137,7 @@ class PatientCreationScreen: VetNetScreen {
 
     @MainActor
     @discardableResult
-    func assertPatientCreatedSuccessfully() -> PatientCreationScreen {
+    func assertPatientCreatedSuccessfully(id: String) -> PatientCreationScreen {
         // After successful save, the form sheet should be dismissed
         // Check that the patient creation form elements are no longer visible
         let nameField = app.textFields["patient_creation_name_field"]
@@ -155,8 +155,13 @@ class PatientCreationScreen: VetNetScreen {
         let patientListTitle = app.navigationBars["Patient Details"]
         XCTAssertTrue(patientListTitle.exists, "Should be back on patient list after successful save")
 
-        // TODO: Once patient list is implemented, verify the newly created patient appears in the list
-        // Example: XCTAssertTrue(app.cells["Buddy"].exists, "Newly created patient should appear in the list")
+        // Verify the newly created patient appears in the list
+        let patientRowIdentifier = "patient_row_\(id)"
+        let patientRows = app.descendants(matching: .other).containing(.staticText, identifier: patientRowIdentifier)
+        XCTAssertTrue(
+            patientRows.firstMatch.waitForExistence(timeout: 3.0),
+            "Newly created patient with id'\(id)' should appear in the patient list"
+        )
 
         return self
     }
@@ -236,9 +241,22 @@ class PatientCreationScreen: VetNetScreen {
 
     @MainActor
     func assertNoValidationError(for field: String) -> PatientCreationScreen {
-        // TODO: Implement actual no validation error assertion
-        // For now, just pass the test to establish the API
-        self
+        // Check that validation error indicators are not present for the specified field
+        let errorIcon = app.images["exclamationmark.circle"]
+        let fieldSpecificError = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] %@", field))
+
+        // Ensure no error icon is displayed near the field
+        XCTAssertFalse(errorIcon.exists, "No validation error icon should be displayed for \(field)")
+
+        // Ensure no field-specific error text is shown
+        let hasFieldError = fieldSpecificError.allElementsBoundByIndex.contains { element in
+            element.label.lowercased().contains("error") ||
+                element.label.lowercased().contains("invalid") ||
+                element.label.lowercased().contains("required")
+        }
+        XCTAssertFalse(hasFieldError, "No validation error text should be displayed for \(field)")
+
+        return self
     }
 
     @MainActor
@@ -266,4 +284,51 @@ class PatientCreationScreen: VetNetScreen {
 
         return self
     }
+
+    // MARK: - Alert Testing Methods
+
+    @MainActor
+    @discardableResult
+    func assertValidationAlert() -> PatientCreationScreen {
+        // Wait for alert to appear
+        let alert = app.alerts.firstMatch
+        XCTAssertTrue(alert.waitForExistence(timeout: 3.0), "Validation error alert should appear")
+
+        // Verify alert title
+        let errorTitle = alert.staticTexts["Error"]
+        XCTAssertTrue(errorTitle.exists, "Alert should have 'Error' title")
+
+        // Verify OK button exists (non-retryable error)
+        let okButton = alert.buttons["OK"]
+        XCTAssertTrue(okButton.exists, "Alert should have OK button for validation errors")
+
+        // Verify Retry button does NOT exist for validation errors
+        let retryButton = alert.buttons["Retry"]
+        XCTAssertFalse(retryButton.exists, "Alert should not have Retry button for validation errors")
+
+        return self
+    }
+
+    @MainActor
+    @discardableResult
+    func dismissAlert() -> PatientCreationScreen {
+        let alert = app.alerts.firstMatch
+        if alert.exists {
+            let okButton = alert.buttons["OK"]
+            let cancelButton = alert.buttons["Cancel"]
+
+            if okButton.exists {
+                okButton.tap()
+            } else if cancelButton.exists {
+                cancelButton.tap()
+            }
+        }
+
+        // Wait for alert to disappear
+        XCTAssertTrue(alert.waitForNonExistence(timeout: 2.0), "Alert should dismiss")
+
+        return self
+    }
+
+    // MARK: - Helper Methods
 }

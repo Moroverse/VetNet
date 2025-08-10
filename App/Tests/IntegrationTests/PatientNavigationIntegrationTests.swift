@@ -287,7 +287,7 @@ struct PatientNavigationIntegrationTests {
 
             // Perform form operation
             Task {
-                let _ = await router.createPatient()
+                _ = await router.createPatient()
             }
 
             await Task.yield()

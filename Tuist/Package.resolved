@@ -1,5 +1,5 @@
 {
-  "originHash" : "159ed36dccc576ea944131bf57802cf91fbd8e63f229bd59a321d1c47616b488",
+  "originHash" : "f73be3ff72ba97181b4b35409d18276cfef81749bbadb4f2e5e05ef7131c9c2d",
   "pins" : [
     {
       "identity" : "factory",
@@ -40,7 +40,7 @@
     {
       "identity" : "swift-concurrency-extras",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/pointfreeco/swift-concurrency-extras",
+      "location" : "https://github.com/pointfreeco/swift-concurrency-extras.git",
       "state" : {
         "revision" : "82a4ae7170d98d8538ec77238b7eb8e7199ef2e8",
         "version" : "1.3.1"
@@ -70,7 +70,7 @@
       "location" : "https://github.com/Moroverse/test-kit.git",
       "state" : {
         "branch" : "develop",
-        "revision" : "34097d4d4dbeb6592e4a85ee3afab7fe302e738d"
+        "revision" : "fd8365fa6b71e4113ce2e5efc07a2d1a55e9b7ad"
       }
     },
     {
@@ -96,8 +96,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
-        "revision" : "23e3442166b5122f73f9e3e622cd1e4bafeab3b7",
-        "version" : "1.6.0"
+        "revision" : "b2ed9eabefe56202ee4939dd9fc46b6241c88317",
+        "version" : "1.6.1"
       }
     }
   ],

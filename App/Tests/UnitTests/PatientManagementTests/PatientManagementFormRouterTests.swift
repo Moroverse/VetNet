@@ -229,7 +229,7 @@ struct PatientManagementFormRouterTests {
 
         // Start first form presentation
         Task {
-            let _ = await router.createPatient()
+            _ = await router.createPatient()
         }
 
         // Give the first task time to start
@@ -237,7 +237,7 @@ struct PatientManagementFormRouterTests {
 
         // Try to present another form (should replace the first)
         Task {
-            let _ = await router.editPatient(patient)
+            _ = await router.editPatient(patient)
         }
 
         // Give the second task time to start
@@ -278,7 +278,7 @@ struct PatientManagementFormRouterTests {
 
         // Start form presentation
         Task {
-            let _ = await router.createPatient()
+            _ = await router.createPatient()
         }
 
         // Give the task time to start

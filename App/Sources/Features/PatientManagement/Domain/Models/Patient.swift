@@ -8,7 +8,7 @@ import Foundation
 
 /// Pure Swift domain model representing a veterinary patient
 /// Contains business logic and validation rules without persistence dependencies
-struct Patient: Sendable, Identifiable, Hashable {
+nonisolated struct Patient: Sendable, Identifiable, Hashable {
     // MARK: - Identity
 
     let id: ID
@@ -76,7 +76,7 @@ struct Patient: Sendable, Identifiable, Hashable {
 // MARK: - Patient ID
 
 extension Patient {
-    struct ID: Sendable, Hashable, Identifiable {
+    nonisolated struct ID: Sendable, Hashable, Identifiable {
         let value: UUID
 
         var id: UUID { value }
@@ -140,6 +140,7 @@ extension Patient {
     }
 
     /// Check if patient is considered a puppy/kitten/young based on species
+    @MainActor
     var isYoung: Bool {
         let ageInMonths = age().totalMonths
 
@@ -160,6 +161,7 @@ extension Patient {
     /// Validate patient data using ValidationRule pattern
     /// - Parameter validator: PatientValidator instance to use
     /// - Returns: True if all validation passes
+    @MainActor
     func isValid(using validator: PatientValidator = PatientValidator()) -> Bool {
         validator.isValidName(name) &&
             validator.isValidBirthDate(birthDate) &&

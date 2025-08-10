@@ -127,7 +127,7 @@ identifier_name:
         warning: 50
     allowed_symbols: [_]
     validates_start_with_lowercase: off
-    excluded: ["^i$", "^j$", "^n$", "^x$", "^y$", "^id$", "^ID$", "^am$", "^pm$", "^AM$", "^PM$", "^up$", "^ok$", "^on$", "^kg$", "^to$", "^rx$", "^cc$", "^dx$", "^dy$", "^V1$", "^V2$", "^url&", "^NO$"]
+    excluded: ["^i$", "^j$", "^n$", "^x$", "^y$", "^id$", "^ID$", "^am$", "^pm$", "^AM$", "^PM$", "^up$", "^ok$", "^on$", "^kg$", "^to$", "^rx$", "^cc$", "^dx$", "^dy$", "^V1$", "^V2$", "^url&", "^NO$", "^ui$"]
 
 implicit_getter:
     severity: error

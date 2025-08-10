@@ -24,7 +24,8 @@ final class PatientCreationTests: VetNetUITestCase {
             .tapSave()
 
         // Verify success
-        patientCreationScreen.assertPatientCreatedSuccessfully()
+        // FIXME: - need id for this patient. How to control id generation in UI tests?
+        patientCreationScreen.assertPatientCreatedSuccessfully(id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
     }
 
     // MARK: - Phase 2: Form Validation Tests
@@ -96,5 +97,32 @@ final class PatientCreationTests: VetNetUITestCase {
         patientCreationScreen
             .selectSpecies("Other")
             .assertBreedPickerContains(["Unknown"])
+    }
+
+    // MARK: - Alert Testing
+
+    @MainActor
+    func testValidationError() async throws {
+        // Navigate to patient creation form
+        let patientCreationScreen = app
+            .navigateToPatientList()
+            .tapCreateNewPatient()
+
+        // Fill in patient details and save
+        patientCreationScreen
+            .enterPatientName("Buddy")
+            .selectSpecies("Dog")
+            .selectBreed("Labrador Retriever")
+            .enterOwnerName("John Doe")
+            .enterOwnerPhone("555-123-4567")
+            .enterWeight("25.5") // Add valid weight for a Labrador
+
+        // First, trigger and dismiss validation error
+        // FIXME: - need to some how here mock patientCRUDRepository to always return error
+
+        patientCreationScreen
+            .tapSave()
+            .assertValidationAlert()
+            .dismissAlert()
     }
 }

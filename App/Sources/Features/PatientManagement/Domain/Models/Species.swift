@@ -7,7 +7,7 @@ import Foundation
 // MARK: - Species
 
 /// Veterinary species enumeration with business rules
-enum Species: String, CaseIterable, Sendable, Hashable {
+nonisolated enum Species: String, CaseIterable, Sendable, Hashable {
     case dog
     case cat
     case bird

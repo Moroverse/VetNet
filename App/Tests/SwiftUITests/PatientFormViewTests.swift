@@ -194,13 +194,14 @@ final class PatientFormViewTests: XCTestCase {
 //        XCTAssertTrue(breedFieldFound, "Breed field should be present in edit mode")
 //    }
     ////
-//    // MARK: - Alert Testing
-//
-//    func test_alertConfiguration() throws {
-//        // TODO: Implement alert testing after determining proper alert triggering mechanism
-//        // This will require mocking error states in the view model
-//        XCTAssertTrue(true, "Alert testing placeholder - needs implementation")
-//    }
+
+    // MARK: - Alert Testing
+
+    //
+    // Note: Alert testing is performed in UI tests (VetNetScreen.swift) since ViewInspector
+    // has issues with SwiftUI alert presentation. UI tests provide more reliable testing
+    // of the complete user experience including alert display, button interactions,
+    // and error state management.
     ////
 //    // MARK: - Owner Information Field Tests
 //

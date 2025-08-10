@@ -1,6 +1,6 @@
 // PatientLoaderAdapterTests.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-10 04:07 GMT.
+// Created by Daniel Moro on 2025-08-10 06:38 GMT.
 
 import FactoryKit
 import Foundation
@@ -12,6 +12,7 @@ import TestKit
 @Suite("Patient Loader Adapter Tests")
 struct PatientLoaderAdapterTests {
     // MARK: - Test Helpers
+
     @MainActor
     private func makeSUT() -> (sut: PatientLoaderAdapter, spy: AsyncSpy<Paginated<Patient>>) {
         let spy = AsyncSpy<Paginated<Patient>>()
@@ -114,7 +115,7 @@ struct PatientLoaderAdapterTests {
         let (sut, spy) = makeSUT()
         var result: Paginated<Patient>?
 
-        //when
+        // when
         try await spy.async {
             let query = PatientQuery(searchText: "")
             return try await sut.load(query: query)
@@ -135,7 +136,7 @@ struct PatientLoaderAdapterTests {
         // Given
         let (sut, spy) = makeSUT()
 
-        //when
+        // when
         try await spy.async {
             let query = PatientQuery(searchText: "Test Dog")
             return try await sut.load(query: query)
@@ -171,12 +172,11 @@ struct PatientLoaderAdapterTests {
 
 // MARK: - Test Extensions
 
-
 extension AsyncSpy: @retroactive PatientPaginationRepository where Result == Paginated<Patient> {
     public func findWithPagination(limit: Int) async throws -> Paginated<Patient> {
         try await perform(limit, tag: "findWithPagination")
     }
-    
+
     public func searchByNameWithPagination(_ nameQuery: String, limit: Int) async throws -> Paginated<Patient> {
         try await perform(nameQuery, limit, tag: "searchByNameWithPagination")
     }

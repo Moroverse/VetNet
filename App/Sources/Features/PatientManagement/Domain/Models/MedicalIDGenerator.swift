@@ -9,7 +9,7 @@ import Foundation
 /// Generates unique medical IDs for veterinary patients
 /// Format: [Species Code][YYYYMM][Sequential Number][Check Digit]
 /// Example: DOG2025011234A
-enum MedicalIDGenerator {
+nonisolated enum MedicalIDGenerator {
     /// Generate a unique medical ID for a patient
     /// - Parameters:
     ///   - species: Patient species
