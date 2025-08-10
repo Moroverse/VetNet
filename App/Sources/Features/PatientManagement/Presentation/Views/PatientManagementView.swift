@@ -3,6 +3,7 @@
 // Created by Daniel Moro on 2025-07-29 14:43 GMT.
 
 import FactoryKit
+import StateKit
 import SwiftUI
 import SwiftUIRouting
 
@@ -44,12 +45,26 @@ struct PatientManagementView: View {
 
 struct PatientListView: View {
     @InjectedObservable(\.patientManagementRouter) var router
-    var body: some View {
-        List {
-            Text("Patient 2")
-            Text("Patient 2")
+    @State private var listModel: ListModel<Paginated<Patient>, PatientQuery>
+
+    init() {
+        @Injected(\.patientLoaderAdapter) var loaderAdapter
+        let queryBuilder: (String) -> PatientQuery = { searchText in
+            PatientQuery(searchText: searchText)
         }
-        .navigationTitle("Patient Details")
+        let lModel = ListModel(loader: loaderAdapter.load, queryBuilder: queryBuilder)
+
+        _listModel = State(initialValue: lModel)
+    }
+
+    var body: some View {
+        BasicList(viewModel: listModel, isSearchable: true, listRow: { patient in
+            PatientRowView(patient: patient)
+                .onTapGesture {
+                    router.navigateToPatientDetail(patient)
+                }
+        })
+        .navigationTitle("Patients")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Add", systemImage: "plus") {
@@ -59,6 +74,53 @@ struct PatientListView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Patient Row View
+
+struct PatientRowView: View {
+    let patient: Patient
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(patient.name)
+                    .font(.headline)
+                Spacer()
+                Text(ageText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Text("\(patient.species.description) • \(patient.breed.description)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(patient.medicalID)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+
+            if !patient.ownerName.isEmpty {
+                Text("Owner: \(patient.ownerName)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("patient_row_\(patient.id.value.uuidString)")
+    }
+
+    private var ageText: String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.year, .month]
+        formatter.unitsStyle = .abbreviated
+        formatter.maximumUnitCount = 1
+
+        let age = Calendar.current.dateComponents([.year, .month], from: patient.birthDate, to: Date())
+        return formatter.string(from: age) ?? "Unknown age"
     }
 }
 

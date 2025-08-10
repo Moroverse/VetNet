@@ -114,6 +114,28 @@ extension Container {
         .cached
     }
 
+    /// Pagination-specific patient repository interface
+    /// - Returns: PatientPaginationRepository for pagination operations
+    /// - Note: Delegates to main patient repository, respects feature flags
+    @MainActor
+    var patientPaginationRepository: Factory<PatientPaginationRepository> {
+        self {
+            Container.shared.patientRepository()
+        }
+        .cached
+    }
+
+    /// Patient loader adapter for StateKit ListModel integration
+    /// - Returns: PatientLoaderAdapter that bridges repository to StateKit
+    /// - Note: Cached for performance
+    @MainActor
+    var patientLoaderAdapter: Factory<PatientLoaderAdapter> {
+        self {
+            PatientLoaderAdapter()
+        }
+        .cached
+    }
+
     /// Date provider service for testable date operations
     /// - Returns: DateProvider implementation
     /// - Note: Cached for consistent date behavior across app
