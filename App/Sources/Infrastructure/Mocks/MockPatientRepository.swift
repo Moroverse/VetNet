@@ -10,10 +10,14 @@
 
     final class MockPatientRepository: PatientRepositoryProtocol, TestControllable {
         var behavior: BehaviorTrait = .success
+        private var sequentialIndex: Int = 0 // Track position in sequential behaviors
         private var patients: [Patient.ID: Patient] = [:]
 
-        init(behavior: BehaviorTrait = .success) {
+        init(behavior: BehaviorTrait = .success, skipInitialData: Bool = false) {
             self.behavior = behavior
+
+            // Skip auto-population if requested (e.g., for UI tests with specific scenarios)
+            guard !skipInitialData else { return }
 
             // Pre-populate with built-in test data if success or delayed
             if case .success = behavior {
@@ -45,10 +49,48 @@
 
         // MARK: - Helper Methods
 
-        private func checkForFailure() throws {
-            switch behavior {
-            case let .failure(error):
+        private func getCurrentBehavior() -> BehaviorTrait {
+            if case let .sequential(behaviors) = behavior {
+                guard !behaviors.isEmpty else { return .success }
+                let currentBehavior = behaviors[sequentialIndex % behaviors.count]
+                return currentBehavior
+            }
+            return behavior
+        }
+
+        private func advanceSequentialIndex() {
+            if case let .sequential(behaviors) = behavior {
+                sequentialIndex = (sequentialIndex + 1) % max(behaviors.count, 1)
+            }
+        }
+
+        private func mapErrorIfNeeded(_ error: Error) throws {
+            // Map TestControlError to RepositoryError for proper error handling
+            if let testError = error as? TestControlError {
+                switch testError {
+                case .validationError("Duplicate key constraint"):
+                    throw RepositoryError.duplicateKey("medicalID: TEST123456")
+                case let .validationError(message):
+                    throw RepositoryError.validationFailed([message])
+                case let .networkError(message):
+                    throw RepositoryError.databaseError("Network error: \(message)")
+                case let .persistenceError(message):
+                    throw RepositoryError.databaseError("Persistence error: \(message)")
+                default:
+                    throw RepositoryError.unknownError("Test error: \(testError.localizedDescription)")
+                }
+            } else {
                 throw error
+            }
+        }
+
+        private func checkForFailure() throws {
+            let currentBehavior = getCurrentBehavior()
+            defer { advanceSequentialIndex() }
+
+            switch currentBehavior {
+            case let .failure(error):
+                try mapErrorIfNeeded(error)
 
             case let .intermittent(successRate):
                 if Double.random(in: 0 ... 1) >= successRate {
@@ -130,8 +172,12 @@
         // MARK: - PatientCRUDRepository
 
         func create(_ patient: Patient) async throws -> Patient {
+            // Get current behavior (handles sequential automatically)
+            let currentBehavior = getCurrentBehavior()
+            defer { advanceSequentialIndex() }
+
             // Handle behavior trait
-            switch behavior {
+            switch currentBehavior {
             case .success:
                 patients[patient.id] = patient
                 return patient
@@ -142,7 +188,8 @@
                 return patient
 
             case let .failure(error):
-                throw error
+                try mapErrorIfNeeded(error)
+                return patient // This won't be reached
 
             case let .intermittent(successRate):
                 if Double.random(in: 0 ... 1) < successRate {
@@ -152,18 +199,10 @@
                     throw RepositoryError.databaseError("Intermittent failure")
                 }
 
-            case let .sequential(behaviors):
-                // For simplicity, just use the first behavior
-                if let firstBehavior = behaviors.first {
-                    let originalBehavior = behavior
-                    behavior = firstBehavior
-                    let result = try await create(patient)
-                    behavior = originalBehavior
-                    return result
-                } else {
-                    patients[patient.id] = patient
-                    return patient
-                }
+            case .sequential:
+                // This should never be reached as getCurrentBehavior() unwraps sequential
+                patients[patient.id] = patient
+                return patient
 
             case let .custom(customBehavior):
                 // Handle custom behaviors
@@ -184,12 +223,19 @@
         }
 
         func update(_ patient: Patient) async throws -> Patient {
+            // Get current behavior (handles sequential automatically)
+            let currentBehavior = getCurrentBehavior()
+            defer { advanceSequentialIndex() }
+
             // Handle delays
-            if case let .delayed(seconds) = behavior {
+            if case let .delayed(seconds) = currentBehavior {
                 try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             }
 
-            try checkForFailure()
+            // Check for failure with proper error mapping
+            if case let .failure(error) = currentBehavior {
+                try mapErrorIfNeeded(error)
+            }
 
             guard patients[patient.id] != nil else {
                 throw RepositoryError.notFound

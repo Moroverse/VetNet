@@ -109,7 +109,9 @@ extension Container {
             // Check if we're in UI testing mode first
             if ProcessInfo.processInfo.arguments.contains("UI_TESTING") {
                 // Use mock repository for UI tests
-                let mockRepo = MockPatientRepository(behavior: .success)
+                // Skip initial data if a test scenario is specified (will be configured by TestControlPlane)
+                let skipData = ProcessInfo.processInfo.arguments.contains("-TEST_SCENARIO")
+                let mockRepo = MockPatientRepository(behavior: .success, skipInitialData: skipData)
 
                 // Register with TestControlPlane if test scenario is active
                 #if DEBUG

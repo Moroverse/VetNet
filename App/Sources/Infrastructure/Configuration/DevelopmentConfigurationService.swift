@@ -55,6 +55,16 @@ final class DevelopmentConfigurationService: Sendable {
     func initialize() async {
         updateCurrentFlags()
 
+        // Skip repository operations during UI tests with test scenarios
+        // This prevents race conditions with TestControlPlane behavior setup
+        if ProcessInfo.processInfo.arguments.contains("UI_TESTING"),
+           ProcessInfo.processInfo.arguments.contains("-TEST_SCENARIO") {
+            logger.info("Skipping sample data check during UI test with scenario", category: .testing)
+            sampleDataSeeded = false
+            isConfigured = true
+            return
+        }
+
         // Check if sample data is already seeded
         do {
             sampleDataSeeded = try await dataSeedingService.isSampleDataSeeded()

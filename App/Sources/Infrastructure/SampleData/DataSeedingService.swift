@@ -67,6 +67,13 @@ final class DataSeedingService: Sendable {
 
     /// Check if sample data has been seeded
     func isSampleDataSeeded() async throws -> Bool {
+        // During UI tests with test scenarios, consider data as not seeded
+        // This prevents repository access that could interfere with TestControlPlane setup
+        if ProcessInfo.processInfo.arguments.contains("UI_TESTING"),
+           ProcessInfo.processInfo.arguments.contains("-TEST_SCENARIO") {
+            return false
+        }
+
         let count = try await patientRepository.count()
         return count >= 20 // We generate 22 patients, so 20+ indicates seeded data
     }

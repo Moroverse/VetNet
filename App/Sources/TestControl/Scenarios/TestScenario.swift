@@ -96,10 +96,13 @@ public extension TestScenario {
         public static let validationErrors = TestScenario(
             id: "validation_errors",
             name: "Validation Errors",
-            description: "Repository operations fail with validation errors",
+            description: "Repository operations succeed initially then fail with validation errors",
             serviceBehaviors: [
                 .uuidProvider: .custom(ControllableUUIDProvider.Behavior.fixed(UUID(uuidString: "12345678-1234-1234-1234-123456789012")!)),
-                .patientCRUDRepository: .failure(TestControlError.Validation.duplicateKey)
+                .patientCRUDRepository: .sequential([
+                    .success, // First operations succeed (app initialization, list loading)
+                    .failure(TestControlError.Validation.duplicateKey) // Finally fail when test tries to save
+                ])
             ]
         )
 
