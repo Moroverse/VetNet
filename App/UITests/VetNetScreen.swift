@@ -92,8 +92,21 @@ class PatientCreationScreen: VetNetScreen {
 
         // Clear existing text (the default "0")
         if let currentValue = weightField.value as? String, !currentValue.isEmpty {
-            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: currentValue.count)
-            weightField.typeText(deleteString)
+            // Select all and delete
+            weightField.tap()
+            weightField.press(forDuration: 1.0) // Long press to bring up menu
+
+            // Try to select all from menu
+            let selectAll = app.menuItems["Select All"]
+            if selectAll.waitForExistence(timeout: 1.0) {
+                selectAll.tap()
+            } else {
+                // Fallback: triple-tap to select all
+                weightField.tap(withNumberOfTaps: 3, numberOfTouches: 1)
+            }
+
+            // Type delete key
+            weightField.typeText(XCUIKeyboardKey.delete.rawValue)
         }
 
         // Use locale-appropriate decimal separator

@@ -10,6 +10,7 @@ struct VetNetApp: App {
     #if DEBUG
         @State private var developmentConfig = DevelopmentConfigurationService()
         @State private var showingDebugSettings = false
+        private let testControlInitializer = TestControlInitializer()
     #endif
 
     var body: some Scene {
@@ -36,6 +37,15 @@ struct VetNetApp: App {
         // Ensure feature flags are properly initialized
         let featureFlagService = Container.shared.featureFlagService()
         let logger = Container.shared.loggingService()
+
+        // Initialize Test Control Plane if running UI tests
+        #if DEBUG
+            testControlInitializer.initialize()
+
+            if testControlInitializer.isActive {
+                logger.info("Test Control Plane activated", category: .testing)
+            }
+        #endif
 
         // Log current configuration in debug mode
         #if DEBUG

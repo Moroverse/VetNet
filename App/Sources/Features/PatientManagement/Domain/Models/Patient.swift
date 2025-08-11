@@ -2,6 +2,7 @@
 // Copyright (c) 2025 Moroverse
 // Created by Daniel Moro on 2025-07-22 19:58 GMT.
 
+import FactoryKit
 import Foundation
 
 // MARK: - Patient Domain Model
@@ -82,7 +83,10 @@ extension Patient {
         var id: UUID { value }
 
         init() {
-            value = UUID()
+            @Injected(\.uuidProvider)
+            var uuidProvider
+
+            value = uuidProvider.generate()
         }
 
         init(_ uuid: UUID) {

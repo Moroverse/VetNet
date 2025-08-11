@@ -8,6 +8,7 @@ import XCTest
 final class PatientCreationTests: VetNetUITestCase {
     @MainActor
     func testCreatePatientHappyPath() async throws {
+        let app = makeApp()
         // Navigate to patient creation (real user flow)
         let patientCreationScreen = app
             .navigateToPatientList()
@@ -24,14 +25,15 @@ final class PatientCreationTests: VetNetUITestCase {
             .tapSave()
 
         // Verify success
-        // FIXME: - need id for this patient. How to control id generation in UI tests?
-        patientCreationScreen.assertPatientCreatedSuccessfully(id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+        patientCreationScreen.assertPatientCreatedSuccessfully(id: "00000000-0000-0000-0000-000000000006")
+        // FIXME: - test is failing because newly created patient is never show up in the list. Investigate.
     }
 
     // MARK: - Phase 2: Form Validation Tests
 
     @MainActor
     func testEmptyNameValidation() async throws {
+        let app = makeApp()
         let patientCreationScreen = app
             .navigateToPatientList()
             .tapCreateNewPatient()
@@ -54,6 +56,7 @@ final class PatientCreationTests: VetNetUITestCase {
 
     @MainActor
     func testFutureBirthDateValidation() async throws {
+        let app = makeApp()
         let patientCreationScreen = app
             .navigateToPatientList()
             .tapCreateNewPatient()
@@ -69,6 +72,7 @@ final class PatientCreationTests: VetNetUITestCase {
 
     @MainActor
     func testSpeciesBreedDependency() async throws {
+        let app = makeApp()
         let patientCreationScreen = app
             .navigateToPatientList()
             .tapCreateNewPatient()
@@ -103,12 +107,15 @@ final class PatientCreationTests: VetNetUITestCase {
 
     @MainActor
     func testValidationError() async throws {
+        // Launch app with validation_errors scenario - this makes patientCRUDRepository return duplicate key errors
+        let app = makeApp(testScenario: "validation_errors")
+
         // Navigate to patient creation form
         let patientCreationScreen = app
             .navigateToPatientList()
             .tapCreateNewPatient()
 
-        // Fill in patient details and save
+        // Fill in patient details with valid data
         patientCreationScreen
             .enterPatientName("Buddy")
             .selectSpecies("Dog")
@@ -117,9 +124,7 @@ final class PatientCreationTests: VetNetUITestCase {
             .enterOwnerPhone("555-123-4567")
             .enterWeight("25.5") // Add valid weight for a Labrador
 
-        // First, trigger and dismiss validation error
-        // FIXME: - need to some how here mock patientCRUDRepository to always return error
-
+        // Trigger save - the Test Control Plane will make patientCRUDRepository return a duplicate key error
         patientCreationScreen
             .tapSave()
             .assertValidationAlert()

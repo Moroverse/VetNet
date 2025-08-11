@@ -280,7 +280,7 @@ struct PatientFormView_Previews: PreviewProvider {
             .previewDisplayName("Edit Mode")
 
             // Preview with duplicate key error
-            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .duplicateKeyError) } // swiftlint:disable:this redundant_discardable_let
+            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .failure(TestControlError.Validation.duplicateKey)) } // swiftlint:disable:this redundant_discardable_let
             NavigationStack {
                 PatientFormView(mode: .edit(Patient(
                     name: "Buddy",
@@ -297,7 +297,7 @@ struct PatientFormView_Previews: PreviewProvider {
             .previewDisplayName("Duplicate Key Error")
 
             // Preview with general error
-            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .generalError) } // swiftlint:disable:this redundant_discardable_let
+            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .failure(TestControlError.Network.connectionTimeout)) } // swiftlint:disable:this redundant_discardable_let
             NavigationStack {
                 PatientFormView(mode: .edit(Patient(
                     name: "Buddy",
@@ -314,7 +314,7 @@ struct PatientFormView_Previews: PreviewProvider {
             .previewDisplayName("General Error")
 
             // Preview with slow response (saving state)
-            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .slowResponse) } // swiftlint:disable:this redundant_discardable_let
+            let _ = Container.shared.patientCRUDRepository.register { MockPatientRepository(behavior: .delayed(3.0)) } // swiftlint:disable:this redundant_discardable_let
             NavigationStack {
                 PatientFormView(mode: .edit(Patient(
                     name: "Buddy",

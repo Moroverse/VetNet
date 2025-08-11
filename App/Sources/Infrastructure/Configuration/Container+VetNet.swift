@@ -37,6 +37,25 @@ import SwiftData
 // Check console logs for CloudKit initialization status and troubleshooting information.
 
 extension Container {
+    // MARK: - Core Services
+
+    /// UUID Provider for generating unique identifiers
+    var uuidProvider: Factory<UUIDProvider> {
+        self {
+            #if DEBUG
+                let provider = ControllableUUIDProvider.sequential()
+                // Register with test control plane in debug mode
+                Task { @MainActor in
+                    TestControlPlane.shared.register(provider, as: .uuidProvider)
+                }
+                return provider
+            #else
+                return ControllableUUIDProvider()
+            #endif
+
+        }.singleton
+    }
+
     // MARK: - Error Handling Strategy
 
     //
@@ -87,6 +106,22 @@ extension Container {
     @MainActor
     var patientRepository: Factory<PatientRepositoryProtocol> {
         self {
+            // Check if we're in UI testing mode first
+            if ProcessInfo.processInfo.arguments.contains("UI_TESTING") {
+                // Use mock repository for UI tests
+                let mockRepo = MockPatientRepository(behavior: .success)
+
+                // Register with TestControlPlane if test scenario is active
+                #if DEBUG
+                    if ProcessInfo.processInfo.arguments.contains("-TEST_SCENARIO") {
+                        TestControlPlane.shared.register(mockRepo, as: .patientRepository)
+                        TestControlPlane.shared.register(mockRepo, as: .patientCRUDRepository)
+                    }
+                #endif
+
+                return mockRepo
+            }
+
             let featureFlagService = self.featureFlagService()
 
             if featureFlagService.isEnabled(.useMockData) {
@@ -96,9 +131,6 @@ extension Container {
                 let context = Container.shared.modelContext()
                 return SwiftDataPatientRepository(modelContext: context)
             }
-        }
-        .onDebug {
-            MockPatientRepository(behavior: .success)
         }
         .cached
     }
@@ -336,7 +368,7 @@ extension ModelContainer {
 
     /// Configures CloudKit-specific settings for HIPAA compliance
     /// - Parameter container: The ModelContainer to configure
-    private static func configureCloudKitSettings(for container: ModelContainer) {
+    private static func configureCloudKitSettings(for _: ModelContainer) {
         let logger = Container.shared.loggingService()
 
         // CloudKit configuration happens automatically with ModelConfiguration
