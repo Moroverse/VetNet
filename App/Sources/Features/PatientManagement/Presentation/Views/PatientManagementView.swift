@@ -16,7 +16,7 @@ struct PatientManagementView: View {
             } destination: { (route: PatientRoute) in
                 switch route {
                 case let .patientDetail(patient):
-                    PatientDetailView(
+                    PatientDetailsView(
                         patient: patient
                     )
 
@@ -60,6 +60,7 @@ struct PatientListView: View {
     var body: some View {
         BasicList(viewModel: listModel, isSearchable: true, listRow: { patient in
             PatientRowView(patient: patient)
+                .contentShape(Rectangle())
                 .onTapGesture {
                     router.navigateToPatientDetail(patient)
                 }
@@ -127,15 +128,5 @@ struct PatientRowView: View {
 
         let age = Calendar.current.dateComponents([.year, .month], from: patient.birthDate, to: Date())
         return formatter.string(from: age) ?? "Unknown age"
-    }
-}
-
-struct PatientDetailView: View {
-    let patient: Patient
-    let isReadOnly: Bool = false
-
-    var body: some View {
-        Text("Patient Detail: \(patient.name)")
-            .navigationTitle("Patient Details")
     }
 }
