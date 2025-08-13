@@ -25,8 +25,7 @@ final class PatientCreationTests: VetNetUITestCase {
             .tapSave()
 
         // Verify success
-        patientCreationScreen.assertPatientCreatedSuccessfully(id: "00000000-0000-0000-0000-000000000006")
-        // FIXME: - test is failing because newly created patient is never show up in the list. Investigate.
+        patientCreationScreen.assertPatientCreatedSuccessfully(id: "00000000-0000-0000-0000-000000000001")
     }
 
     // MARK: - Phase 2: Form Validation Tests

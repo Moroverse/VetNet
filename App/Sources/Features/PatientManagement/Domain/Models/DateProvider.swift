@@ -54,10 +54,10 @@ struct FixedDateProvider: DateProvider {
 // MARK: - Controllable Date Provider
 
 /// Date provider that can be controlled during testing via TestControl system
-final class ControllableDateProvider: DateProvider, TestControllable, @unchecked Sendable {
+public final class ControllableDateProvider: DateProvider, TestControllable, @unchecked Sendable {
     // MARK: - Behavior Definition
 
-    enum Behavior: Sendable {
+    public enum Behavior: Sendable {
         /// Use system date (default)
         case system
 
@@ -118,12 +118,12 @@ final class ControllableDateProvider: DateProvider, TestControllable, @unchecked
 
     // MARK: - TestControllable
 
-    func applyBehavior(_ behavior: Behavior) {
+    public func applyBehavior(_ behavior: Behavior) {
         self.behavior = behavior
         currentDate = nil // Reset incrementing state
     }
 
-    func resetBehavior() {
+    public func resetBehavior() {
         behavior = .system
         currentDate = nil
     }
@@ -146,5 +146,6 @@ final class ControllableDateProvider: DateProvider, TestControllable, @unchecked
             provider.applyBehavior(.incrementing(start: start, increment: interval))
             return provider
         }
-    }
+
+}
 #endif

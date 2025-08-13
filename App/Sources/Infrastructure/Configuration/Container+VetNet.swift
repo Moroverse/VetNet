@@ -174,6 +174,7 @@ extension Container {
     /// - Returns: DateProvider implementation
     /// - Note: Cached for consistent date behavior across app
     /// - TestControl Mode: Uses ControllableDateProvider for test scenarios
+    @MainActor
     var dateProvider: Factory<DateProvider> {
         self {
             #if DEBUG
@@ -181,9 +182,7 @@ extension Container {
                 let provider = ControllableDateProvider()
 
                 // Register with TestControlPlane
-                Task { @MainActor in
-                    TestControlPlane.shared.register(provider, as: .dateProvider)
-                }
+                TestControlPlane.shared.register(provider, as: .dateProvider)
 
                 return provider
             #else

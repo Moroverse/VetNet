@@ -155,7 +155,7 @@ public struct LaunchArgumentParser {
         }
     }
 
-    private func parseDateBehavior(from string: String) -> FixedDateProviderBehavior {
+    private func parseDateBehavior(from string: String) -> ControllableDateProvider.Behavior {
         switch string.lowercased() {
         case "fixed":
             // Use a fixed date for testing (Aug 9, 2023)
@@ -192,7 +192,7 @@ public struct TestConfiguration {
     public var isUITesting = false
     public var scenarioId: String?
     public var uuidBehavior: ControllableUUIDProvider.Behavior?
-    public var dateBehavior: FixedDateProviderBehavior?
+    public var dateBehavior: ControllableDateProvider.Behavior?
     public var repositoryBehavior: RepositoryBehavior?
     public var verboseLogging = false
 

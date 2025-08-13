@@ -113,7 +113,7 @@ public extension TestScenario {
             description: "Date provider returns fixed date for consistent time-based tests",
             serviceBehaviors: [
                 .uuidProvider: .custom(ControllableUUIDProvider.Behavior.sequential(start: 1)),
-                .dateProvider: .custom(FixedDateProviderBehavior.fixed(Date(timeIntervalSince1970: 1_700_000_000)))
+                .dateProvider: .custom(ControllableDateProvider.Behavior.fixed(Date(timeIntervalSince1970: 1_700_000_000)))
             ]
         )
 
@@ -217,11 +217,4 @@ public struct LargeDatasetBehavior: Sendable, Hashable {
 /// Custom behavior for repositories that return empty datasets
 public struct EmptyDatasetBehavior: Sendable, Hashable {
     public init() {}
-}
-
-/// Custom behavior for fixed date provider
-public enum FixedDateProviderBehavior: Sendable, Hashable {
-    case fixed(Date)
-    case incrementing(start: Date, increment: TimeInterval)
-    case businessHoursOnly(Date) // Only return dates during business hours
 }

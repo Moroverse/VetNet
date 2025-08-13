@@ -119,7 +119,7 @@ final class PatientFormViewModel: Validatable {
 
     @PropertyEditor(keyPath: \PatientComponents.birthDate)
     var birthDate = FormFieldViewModel(
-        value: Date(),
+        value: Date(timeIntervalSince1970: 0), // Will be set properly in configure()
         title: "Birth Date"
     )
 
