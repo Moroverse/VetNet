@@ -44,8 +44,7 @@ let project = Project(
                 .package(product: "SwiftUIRouting"),
                 .external(name: "Mockable"),
                 .package(product: "QuickForm"),
-                .external(name: "StateKit"),
-                .external(name: "TestableView")
+                .external(name: "StateKit")
             ],
             settings:
             .settings(base: [
@@ -77,8 +76,7 @@ let project = Project(
                 .external(name: "ViewInspector"),
                 .external(name: "FactoryTesting"),
                 .external(name: "TestKit"),
-                .external(name: "ConcurrencyExtras"),
-                .external(name: "TestableViewTesting")
+                .external(name: "ConcurrencyExtras")
             ],
             settings:
             .settings(

@@ -11,7 +11,6 @@ import TestableView
 
 // MARK: - Patient Creation View
 
-@ViewInspectable
 struct PatientFormView: View {
     // Optional view model for lazy initialization
     @State private var viewModel: PatientFormViewModel?
@@ -91,7 +90,6 @@ struct PatientFormView: View {
                 }
             }
         }
-        .inspectable(self)
     }
 }
 
