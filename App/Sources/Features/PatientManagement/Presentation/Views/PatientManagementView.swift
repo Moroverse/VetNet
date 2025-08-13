@@ -74,6 +74,12 @@ struct PatientListView: View {
                 }
             }
         }
+        .onAppear {
+            // Set up callback to refresh list when patients are created/updated
+            router.onPatientListNeedsRefresh = { [listModel] in
+                await listModel.load(forceReload: true)
+            }
+        }
     }
 }
 

@@ -90,24 +90,24 @@ class PatientCreationScreen: VetNetScreen {
         XCTAssertTrue(weightField.waitForExistence(timeout: 2), "Weight field should exist")
         weightField.tap()
 
-        // Clear existing text (the default "0")
-        if let currentValue = weightField.value as? String, !currentValue.isEmpty {
-            // Select all and delete
-            weightField.tap()
-            weightField.press(forDuration: 1.0) // Long press to bring up menu
-
-            // Try to select all from menu
-            let selectAll = app.menuItems["Select All"]
-            if selectAll.waitForExistence(timeout: 1.0) {
-                selectAll.tap()
-            } else {
-                // Fallback: triple-tap to select all
-                weightField.tap(withNumberOfTaps: 3, numberOfTouches: 1)
-            }
-
-            // Type delete key
-            weightField.typeText(XCUIKeyboardKey.delete.rawValue)
-        }
+//        // Clear existing text (the default "0")
+//        if let currentValue = weightField.value as? String, !currentValue.isEmpty {
+//            // Select all and delete
+//            weightField.tap()
+//            weightField.press(forDuration: 1.0) // Long press to bring up menu
+//
+//            // Try to select all from menu
+//            let selectAll = app.menuItems["Select All"]
+//            if selectAll.waitForExistence(timeout: 1.0) {
+//                selectAll.tap()
+//            } else {
+//                // Fallback: triple-tap to select all
+//                weightField.tap(withNumberOfTaps: 3, numberOfTouches: 1)
+//            }
+//
+//            // Type delete key
+//            weightField.typeText(XCUIKeyboardKey.delete.rawValue)
+//        }
 
         // Use locale-appropriate decimal separator
         let locale = Locale.current
@@ -165,7 +165,7 @@ class PatientCreationScreen: VetNetScreen {
         XCTAssertEqual(result, .completed, "Patient creation form should be dismissed after successful save")
 
         // Verify we're back on the patient list
-        let patientListTitle = app.navigationBars["Patient Details"]
+        let patientListTitle = app.navigationBars["Patients"]
         XCTAssertTrue(patientListTitle.exists, "Should be back on patient list after successful save")
 
         // Verify the newly created patient appears in the list

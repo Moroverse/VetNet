@@ -9,14 +9,33 @@ import SwiftUIRouting
 // MARK: - Patient Form Router
 
 final class PatientManagementFormRouter: BaseFormRouter<PatientFormMode, PatientFormResult> {
+    // MARK: - Properties
+
+    /// Callback to refresh the patient list when a patient is created or updated
+    var onPatientListNeedsRefresh: (() async -> Void)?
+
     // MARK: - Form Routing Methods
 
     func createPatient() async -> PatientFormResult {
-        await presentForm(.create)
+        let result = await presentForm(.create)
+
+        // Trigger list refresh if patient was created successfully
+        if case .created = result {
+            await onPatientListNeedsRefresh?()
+        }
+
+        return result
     }
 
     func editPatient(_ patient: Patient) async -> PatientFormResult {
-        await presentForm(.edit(patient))
+        let result = await presentForm(.edit(patient))
+
+        // Trigger list refresh if patient was updated successfully
+        if case .updated = result {
+            await onPatientListNeedsRefresh?()
+        }
+
+        return result
     }
 
     // MARK: - Navigation Methods
