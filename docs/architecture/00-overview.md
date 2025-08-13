@@ -29,16 +29,24 @@ The architecture documentation is organized into the following focused documents
 - **[10-coding-standards.md](10-coding-standards.md)** - Swift 6.2+ development standards and naming conventions
 - **[11-deployment-infrastructure.md](11-deployment-infrastructure.md)** - CI/CD pipeline and environment configuration
 
+### Advanced Patterns & Best Practices
+- **[swift-best-practices.md](swift-best-practices.md)** - FactoryKit dependency injection, FormatStyle API, Measurement patterns, and advanced testing utilities
+- **[quickform-integration.md](quickform-integration.md)** - Comprehensive form architecture using Swift macros for veterinary workflows
+- **[quickform-patterns.mdc](quickform-patterns.mdc)** - Practical implementation patterns and best practices discovered during development
+
+### Development Workflow
+- **[../.claude/rules.md](../.claude/rules.md)** - TDD methodology, code quality standards, and automated workflow rules
+
 ## High Level Architecture
 
 ### Technical Summary
 
-The Veterinary Practice Intelligence application employs a **modular iOS 26-native architecture** built on Domain-Driven Design principles with clear bounded contexts. Each feature module maintains its own domain models, business logic, and well-defined boundaries, communicating through explicit interfaces.
+The Veterinary Practice Intelligence application employs a **modular iOS 26-native architecture** built on Domain-Driven Design principles with clear bounded contexts, **Test-Driven Development (TDD)**, and **advanced Swift 6.2+ patterns**. Each feature module maintains its own domain models, business logic, and well-defined boundaries, communicating through explicit interfaces.
 
 The system is organized into three primary layers:
-- **Feature Modules Layer**: Self-contained feature implementations with internal domain models
-- **Infrastructure Layer**: Technical capabilities (persistence, networking, device services)  
-- **Application Layer**: Orchestration, dependency injection, and module composition
+- **Feature Modules Layer**: Self-contained feature implementations with internal domain models, **QuickForm-based form management**, and **@Observable view models**
+- **Infrastructure Layer**: **FactoryKit dependency injection**, **SwiftData + CloudKit**, **advanced testing utilities** (TestKit, StateKit), and device services
+- **Application Layer**: Orchestration, **sophisticated dependency management**, and module composition with **feature flag architecture**
 
 ### Platform and Infrastructure Choice
 
@@ -99,16 +107,41 @@ graph TD
 - **Pattern**: Clean Architecture with DDD bounded contexts
 - **Rationale**: Maintains clear module boundaries while enabling independent development and testing
 
+### FactoryKit Dependency Injection Architecture
+- **Technology**: FactoryKit with environment-aware service registration
+- **Rationale**: Type-safe dependency management with automatic test/preview mock injection
+- **Implementation**: Container-based services with proper scoping (.cached, .singleton)
+
+### QuickForm Macro-Driven Forms
+- **Technology**: Swift macros with @QuickForm, @PropertyEditor, reactive validation
+- **Rationale**: Eliminates form boilerplate, provides type-safe field bindings, enables sophisticated veterinary form workflows
+- **Integration**: Component struct pattern separates form data from domain models
+
+### Advanced Testing Architecture
+- **Technology**: Swift Testing + TestKit + StateKit + ViewInspector + Mockable
+- **Rationale**: Comprehensive testing with memory leak detection, async testing utilities, rich mock services
+- **Implementation**: TDD methodology with automated test execution after every code change
+
 ### SwiftData with CloudKit Integration  
 - **Technology**: SwiftData + CloudKit with custom DataStore protocol
 - **Rationale**: Leverages iOS 26 performance improvements while ensuring HIPAA compliance
+
+### Swift Best Practices Integration
+- **Technology**: FormatStyle API for veterinary formatting, Measurement API for type-safe calculations
+- **Rationale**: Leverages Swift's modern APIs for locale-aware formatting and unit-safe veterinary calculations
+- **Implementation**: Custom veterinary formatters and measurement extensions
+
+### Test-Driven Development Workflow
+- **Methodology**: Red → Green → Refactor with Tidy First principles
+- **Automation**: PostToolUse hooks for formatting, linting, building, and testing
+- **Rationale**: Ensures code quality, prevents regression, maintains high test coverage (>80%)
 
 ### Liquid Glass Design System
 - **Implementation**: iOS 26 Liquid Glass with research-validated 40% GPU performance improvement
 - **Rationale**: Premium user experience differentiation in veterinary software market
 
 ### Swift 6.2+ Structured Concurrency
-- **Pattern**: TaskGroup for parallel processing, async/await throughout
+- **Pattern**: TaskGroup for parallel processing, async/await throughout, MainActor isolation by default
 - **Rationale**: Maximizes iOS 26 performance benefits for complex scheduling algorithms
 
 ## Relationship to PRD

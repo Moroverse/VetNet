@@ -146,6 +146,5 @@ public final class ControllableDateProvider: DateProvider, TestControllable, @un
             provider.applyBehavior(.incrementing(start: start, increment: interval))
             return provider
         }
-
-}
+    }
 #endif
