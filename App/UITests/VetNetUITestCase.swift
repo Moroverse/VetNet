@@ -55,20 +55,19 @@ class VetNetUITestCase: XCTestCase {
             "-AppleLocale", "en_US_POSIX"
         ]
 
-        // Add test scenario if specified
-        if let scenario = testScenario {
-            launchArguments.append(contentsOf: ["-TEST_SCENARIO", scenario])
-        }
+        // Use fixed_date scenario by default for deterministic behavior
+        // This ensures all tests have predictable dates without FIXED_DATE environment variable
+        let effectiveScenario = testScenario ?? "fixed_date"
+        launchArguments.append(contentsOf: ["-TEST_SCENARIO", effectiveScenario])
 
         // Add any additional test-specific arguments
         launchArguments.append(contentsOf: additionalArguments)
 
         application.launchArguments = launchArguments
 
-        // Set fixed date and timezone for deterministic behavior
+        // Set timezone for deterministic behavior (keep this as it's still useful)
         application.launchEnvironment = [
-            "TZ": "UTC",
-            "FIXED_DATE": "2023-08-09T08:00:00Z" // Fixed date: August 9, 2023, 8:00 AM UTC
+            "TZ": "UTC"
         ]
 
         application.launch()

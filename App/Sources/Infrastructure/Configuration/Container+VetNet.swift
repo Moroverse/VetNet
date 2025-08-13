@@ -173,7 +173,6 @@ extension Container {
     /// Date provider service for testable date operations
     /// - Returns: DateProvider implementation
     /// - Note: Cached for consistent date behavior across app
-    /// - UI Test Mode: Uses FixedDateProvider with FIXED_DATE environment variable
     /// - TestControl Mode: Uses ControllableDateProvider for test scenarios
     var dateProvider: Factory<DateProvider> {
         self {
@@ -184,18 +183,6 @@ extension Container {
                 // Register with TestControlPlane
                 Task { @MainActor in
                     TestControlPlane.shared.register(provider, as: .dateProvider)
-                }
-
-                // Check for UI testing environment with fixed date
-                if ProcessInfo.processInfo.arguments.contains("UI_TESTING"),
-                   let fixedDateString = ProcessInfo.processInfo.environment["FIXED_DATE"] {
-                    // Parse the ISO date string and apply fixed behavior
-                    let formatter = ISO8601DateFormatter()
-                    if let fixedDate = formatter.date(from: fixedDateString) {
-                        Task { @MainActor in
-                            provider.applyBehavior(.fixed(fixedDate))
-                        }
-                    }
                 }
 
                 return provider

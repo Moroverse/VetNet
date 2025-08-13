@@ -210,7 +210,7 @@ This document tracks the development of **essential** end-to-end UI tests for St
 
 ### Phase 2 Learnings  
 - **Deterministic dependencies crucial**: Fixed date/time/locale prevents flaky tests from locale/date formatting variations
-- **Environment variables effective**: Using `FIXED_DATE` and `TZ` environment variables with app startup parsing works well
+- **TestControl scenarios effective**: Using TestControl `fixed_date` scenario provides deterministic date behavior for all tests
 - **FactoryKit injection pattern**: Dependency injection at Container level allows clean test environment setup
 - **Date picker interaction refined**: iOS date picker requires month/year selection first, then day selection
 - **Validation message format matters**: Exact message matching works better than partial with deterministic setup
