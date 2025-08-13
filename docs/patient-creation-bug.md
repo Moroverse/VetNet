@@ -229,7 +229,11 @@ After fix, ensure:
 
 ## Resolution
 
-**Date Fixed**: [TBD]
-**Root Cause**: [TBD]
-**Solution Applied**: [TBD]
-**Verified By**: [TBD]
+**Date Fixed**: 2025-08-13
+**Root Cause**: ListModel cache not updated after successful patient creation - StateKit ListModel maintains cached data that doesn't get automatically refreshed when underlying repository data changes.
+**Solution Applied**: Added callback mechanism in PatientManagementFormRouter that triggers `listModel.load(forceReload: true)` when form operations return success results (.created/.updated).
+**Verified By**: UI test `testCreatePatientHappyPath` now passes successfully ✅
+
+## Status: RESOLVED ✅
+
+The patient creation bug has been successfully fixed. Patients now appear in the list immediately after creation, and the UI test passes consistently.
