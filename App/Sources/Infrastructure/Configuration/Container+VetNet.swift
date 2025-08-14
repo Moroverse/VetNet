@@ -4,6 +4,7 @@
 
 import FactoryKit
 import Foundation
+import StateKit
 import SwiftData
 
 // MARK: - CloudKit Setup Requirements
@@ -219,6 +220,17 @@ extension Container {
         .onTest {
             SilentLoggingService()
         }
+    }
+
+    /// Router event broker for event-driven navigation management
+    /// - Returns: EventBroker implementation for router events
+    /// - Note: Singleton for entire app lifecycle
+    @MainActor
+    var routerEventBroker: Factory<EventBroker> {
+        self {
+            RouterEventBroker()
+        }
+        .singleton
     }
 
     /// Feature flag service for configuration management
