@@ -177,7 +177,7 @@ extension AsyncSpy: @retroactive PatientPaginationRepository where Result == Pag
         try await perform(limit, tag: "findWithPagination")
     }
 
-    public func searchByNameWithPagination(_ nameQuery: String, limit: Int) async throws -> Paginated<Patient> {
-        try await perform(nameQuery, limit, tag: "searchByNameWithPagination")
+    public func searchWithPagination(_ query: String, scope: SearchScope, limit: Int) async throws -> Paginated<Patient> {
+        try await perform(query, limit, tag: "searchByNameWithPagination")
     }
 }

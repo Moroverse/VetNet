@@ -264,25 +264,6 @@
             return patients.values.first { $0.medicalID == medicalID }
         }
 
-        func searchByName(_ nameQuery: String) async throws -> [Patient] {
-            try checkForFailure()
-            return patients.values.filter { patient in
-                patient.name.localizedCaseInsensitiveContains(nameQuery)
-            }
-        }
-
-        func findBySpecies(_ species: Species) async throws -> [Patient] {
-            try checkForFailure()
-            return patients.values.filter { $0.species == species }
-        }
-
-        func findByOwnerName(_ ownerName: String) async throws -> [Patient] {
-            try checkForFailure()
-            return patients.values.filter { patient in
-                patient.ownerName.localizedCaseInsensitiveContains(ownerName)
-            }
-        }
-
         func findCreatedBetween(startDate: Date, endDate: Date) async throws -> [Patient] {
             try checkForFailure()
             return patients.values.filter { patient in
@@ -311,11 +292,11 @@
             return Paginated(items: itemsToReturn, loadMore: nil)
         }
 
-        func searchByNameWithPagination(_ nameQuery: String, limit: Int) async throws -> Paginated<Patient> {
+        func searchWithPagination(_ query: String, scope: SearchScope, limit: Int) async throws -> Paginated<Patient> {
             try checkForFailure()
 
             let filteredPatients = patients.values
-                .filter { $0.name.localizedCaseInsensitiveContains(nameQuery) }
+                .filter { $0.name.localizedCaseInsensitiveContains(query) }
                 .sorted { $0.name < $1.name }
 
             // For mock, we'll return filtered patients up to limit, with no loadMore

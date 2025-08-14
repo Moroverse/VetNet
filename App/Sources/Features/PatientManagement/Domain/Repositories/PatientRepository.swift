@@ -32,15 +32,6 @@ protocol PatientSearchRepository: Sendable {
     /// Find a patient by medical ID
     func findByMedicalID(_ medicalID: String) async throws -> Patient?
 
-    /// Search patients by name (case-insensitive)
-    func searchByName(_ nameQuery: String) async throws -> [Patient]
-
-    /// Find patients by species
-    func findBySpecies(_ species: Species) async throws -> [Patient]
-
-    /// Find patients by owner name (case-insensitive)
-    func findByOwnerName(_ ownerName: String) async throws -> [Patient]
-
     /// Find patients created within date range
     func findCreatedBetween(startDate: Date, endDate: Date) async throws -> [Patient]
 }
@@ -56,15 +47,27 @@ protocol PatientUtilityRepository: Sendable {
     func medicalIDExists(_ medicalID: String) async throws -> Bool
 }
 
+// MARK: - Search Scope
+
+/// Defines the scope for patient search operations
+enum SearchScope: String, CaseIterable, Sendable {
+    case all = "All"
+    case name = "Name"
+    case owner = "Owner"
+    case species = "Species"
+    case breed = "Breed"
+}
+
 // MARK: - Pagination Repository
 
 /// Pagination support for patient queries using StateKit
+
 protocol PatientPaginationRepository: Sendable {
     /// Find patients with pagination
     func findWithPagination(limit: Int) async throws -> Paginated<Patient>
 
-    /// Search patients by name with pagination
-    func searchByNameWithPagination(_ nameQuery: String, limit: Int) async throws -> Paginated<Patient>
+    /// Search patients by name with pagination and scope
+    func searchWithPagination(_ query: String, scope: SearchScope, limit: Int) async throws -> Paginated<Patient>
 }
 
 // MARK: - Composed Repository Protocol

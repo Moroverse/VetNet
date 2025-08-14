@@ -131,45 +131,6 @@ extension SwiftDataPatientRepository {
         }
     }
 
-    func searchByName(_ nameQuery: String) async throws -> [Patient] {
-        let descriptor = FetchDescriptor<PatientEntity>()
-
-        do {
-            let entities = try modelContext.fetch(descriptor)
-            let filteredEntities = entities.filter { $0.name.localizedCaseInsensitiveContains(nameQuery) }
-            return filteredEntities.compactMap { $0.toDomainModel() }
-                .sorted { $0.name < $1.name }
-        } catch {
-            throw RepositoryError.databaseError(error.localizedDescription)
-        }
-    }
-
-    func findBySpecies(_ species: Species) async throws -> [Patient] {
-        let descriptor = FetchDescriptor<PatientEntity>()
-
-        do {
-            let entities = try modelContext.fetch(descriptor)
-            let filteredEntities = entities.filter { $0.speciesRawValue == species.rawValue }
-            return filteredEntities.compactMap { $0.toDomainModel() }
-                .sorted { $0.name < $1.name }
-        } catch {
-            throw RepositoryError.databaseError(error.localizedDescription)
-        }
-    }
-
-    func findByOwnerName(_ ownerName: String) async throws -> [Patient] {
-        let descriptor = FetchDescriptor<PatientEntity>()
-
-        do {
-            let entities = try modelContext.fetch(descriptor)
-            let filteredEntities = entities.filter { $0.ownerName.localizedCaseInsensitiveContains(ownerName) }
-            return filteredEntities.compactMap { $0.toDomainModel() }
-                .sorted { $0.ownerName < $1.ownerName || ($0.ownerName == $1.ownerName && $0.name < $1.name) }
-        } catch {
-            throw RepositoryError.databaseError(error.localizedDescription)
-        }
-    }
-
     func findCreatedBetween(startDate: Date, endDate: Date) async throws -> [Patient] {
         let descriptor = FetchDescriptor<PatientEntity>()
 
@@ -201,12 +162,33 @@ extension SwiftDataPatientRepository {
         }
     }
 
-    func searchByNameWithPagination(_ nameQuery: String, limit: Int) async throws -> Paginated<Patient> {
+    func searchWithPagination(_ query: String, scope: SearchScope, limit: Int) async throws -> Paginated<Patient> {
         let descriptor = FetchDescriptor<PatientEntity>()
 
         do {
             let entities = try modelContext.fetch(descriptor)
-            let filteredEntities = entities.filter { $0.name.localizedCaseInsensitiveContains(nameQuery) }
+            let filteredEntities: [PatientEntity] = switch scope {
+            case .all:
+                entities.filter { entity in
+                    entity.name.localizedCaseInsensitiveContains(query) ||
+                        entity.ownerName.localizedCaseInsensitiveContains(query) ||
+                        entity.speciesRawValue.localizedCaseInsensitiveContains(query) ||
+                        entity.breedRawValue.localizedCaseInsensitiveContains(query)
+                }
+
+            case .name:
+                entities.filter { $0.name.localizedCaseInsensitiveContains(query) }
+
+            case .owner:
+                entities.filter { $0.ownerName.localizedCaseInsensitiveContains(query) }
+
+            case .species:
+                entities.filter { $0.speciesRawValue.localizedCaseInsensitiveEquals(query) }
+
+            case .breed:
+                entities.filter { $0.breedRawValue.localizedCaseInsensitiveContains(query) }
+            }
+
             let patients = filteredEntities.compactMap { $0.toDomainModel() }
                 .sorted { $0.name < $1.name }
 
@@ -259,5 +241,14 @@ private extension SwiftDataPatientRepository {
         } catch {
             throw RepositoryError.databaseError(error.localizedDescription)
         }
+    }
+}
+
+// MARK: - String Extensions for Search
+
+private extension String {
+    /// Case-insensitive equality check using localized comparison
+    func localizedCaseInsensitiveEquals(_ other: String) -> Bool {
+        localizedCaseInsensitiveCompare(other) == .orderedSame
     }
 }

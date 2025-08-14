@@ -1,6 +1,6 @@
 // PatientSearchIntegrationTests.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-13 09:22 GMT.
+// Created by Daniel Moro on 2025-08-13 15:33 GMT.
 
 import Foundation
 import StateKit
@@ -56,7 +56,8 @@ struct PatientSearchIntegrationTests {
         _ = try await repository.create(patient)
 
         // When - Search for "Bel"
-        let results = try await repository.searchByName("Bel")
+        let pagedResults = try await repository.searchWithPagination("Bel", scope: .name, limit: 10)
+        let results = pagedResults.items
 
         // Then
         #expect(results.count == 1)

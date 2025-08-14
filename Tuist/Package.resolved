@@ -1,5 +1,5 @@
 {
-  "originHash" : "6c78b5b1057989fba3ea74cee75c5f4c3b395fadb88d40b400d547e16c3896bd",
+  "originHash" : "8cfa682b1799656f5722f6340eee4fef3089f1e838b074564b4f3a59d26cdef1",
   "pins" : [
     {
       "identity" : "factory",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Moroverse/state-kit",
       "state" : {
-        "revision" : "44c17f57a0f782e57936635635b939eb907cc74e",
-        "version" : "0.6.1"
+        "revision" : "a35bcb6cb15cf906aaef870e37a946e05b1b927c",
+        "version" : "0.6.2"
       }
     },
     {

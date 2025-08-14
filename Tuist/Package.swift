@@ -22,7 +22,7 @@ let package = Package(
         // Forms
         // .package(url: "https://github.com/Moroverse/quick-form", branch: "develop"),
         // View State
-        .package(url: "https://github.com/Moroverse/state-kit", from: "0.6.1"),
+        .package(url: "https://github.com/Moroverse/state-kit", from: "0.6.2"),
         // Dependency Injection
         .package(url: "https://github.com/hmlongco/Factory.git", branch: "develop"),
         // Custom Navigation

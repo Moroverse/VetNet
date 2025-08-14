@@ -244,7 +244,7 @@ struct SwiftDataPatientRepositoryTests {
 
     @Test("Search by name is case-insensitive")
     @MainActor
-    func testSearchByName() async throws {
+    func searchByName() async throws {
         // Given
         let repository = try createTestRepository()
         let patients = [
@@ -258,9 +258,12 @@ struct SwiftDataPatientRepositoryTests {
         }
 
         // When - Search with different cases
-        let results1 = try await repository.searchByName("max")
-        let results2 = try await repository.searchByName("MAX")
-        let results3 = try await repository.searchByName("MaX")
+        let pagedResults1 = try await repository.searchWithPagination("max", scope: .name, limit: 10)
+        let pagedResults2 = try await repository.searchWithPagination("MAX", scope: .name, limit: 10)
+        let pagedResults3 = try await repository.searchWithPagination("MaX", scope: .name, limit: 10)
+        let results1 = pagedResults1.items
+        let results2 = pagedResults2.items
+        let results3 = pagedResults3.items
 
         // Then
         #expect(results1.count == 2, "Should find Max and Maximus")
@@ -270,7 +273,7 @@ struct SwiftDataPatientRepositoryTests {
 
     @Test("Find by species returns correct patients")
     @MainActor
-    func testFindBySpecies() async throws {
+    func findBySpecies() async throws {
         // Given
         let repository = try createTestRepository()
         let dog1 = createTestPatient(name: "Max", species: .dog)
@@ -282,8 +285,10 @@ struct SwiftDataPatientRepositoryTests {
         _ = try await repository.create(cat)
 
         // When
-        let dogs = try await repository.findBySpecies(.dog)
-        let cats = try await repository.findBySpecies(.cat)
+        let dogsResults = try await repository.searchWithPagination("dog", scope: .species, limit: 10)
+        let catsResults = try await repository.searchWithPagination("cat", scope: .species, limit: 10)
+        let dogs = dogsResults.items
+        let cats = catsResults.items
 
         // Then
         #expect(dogs.count == 2)

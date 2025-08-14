@@ -1,6 +1,6 @@
 // BasicList.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-09 21:30 GMT.
+// Created by Daniel Moro on 2025-08-10 06:38 GMT.
 
 import StateKit
 import SwiftUI
@@ -58,9 +58,9 @@ extension ListModel {
     }
 }
 
-struct BasicList<Model: RandomAccessCollection, Query: Sendable, R: View>: View
+struct BasicList<Model: RandomAccessCollection, Query: Sendable, R: View, V: Hashable>: View
     where Model: Sendable, Query: Sendable & Equatable, Model.Element: Identifiable & Sendable {
-    @State var viewModel: ListModel<Model, Query>
+    @State var viewModel: SearchScopeListModel<Model, Query, V>
     @State private var shouldShowError = false
     @State private var searchText: String = ""
     private let listRow: (Model.Element) -> R
@@ -115,7 +115,7 @@ struct BasicList<Model: RandomAccessCollection, Query: Sendable, R: View>: View
     }
 
     init(
-        viewModel: ListModel<Model, Query>,
+        viewModel: SearchScopeListModel<Model, Query, V>,
         isSearchable: Bool = true,
         @ViewBuilder listRow: @escaping (Model.Element) -> R
     ) {

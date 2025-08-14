@@ -45,14 +45,13 @@ struct PatientManagementView: View {
 
 struct PatientListView: View {
     @InjectedObservable(\.patientManagementRouter) var router
-    @State private var listModel: ListModel<Paginated<Patient>, PatientQuery>
+    @State private var listModel: SearchScopeListModel<Paginated<Patient>, PatientQuery, SearchScope>
 
     init() {
         @Injected(\.patientLoaderAdapter) var loaderAdapter
-        let queryBuilder: (String) -> PatientQuery = { searchText in
-            PatientQuery(searchText: searchText)
+        let lModel = SearchScopeListModel(searchScope: SearchScope.all, loader: loaderAdapter.load) { searchText, scope in
+            PatientQuery(searchText: searchText, scope: scope)
         }
-        let lModel = ListModel(loader: loaderAdapter.load, queryBuilder: queryBuilder)
 
         _listModel = State(initialValue: lModel)
     }
@@ -65,6 +64,11 @@ struct PatientListView: View {
                     router.navigateToPatientDetail(patient)
                 }
         })
+        .searchScopes($listModel.selectedScope) {
+            ForEach(SearchScope.allCases, id: \.self) { scope in
+                Text(scope.rawValue)
+            }
+        }
         .navigationTitle("Patients")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
