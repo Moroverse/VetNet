@@ -9,7 +9,7 @@ class VetNetUITestCase: XCTestCase {
     // MARK: - Properties
 
     /// The main application instance for testing
-    private var app: XCUIApplication? // swiftlint:disable:this test_case_accessibility
+    private var app: XCUIApplication?
 
     // MARK: - Setup & Teardown
 
@@ -39,7 +39,7 @@ class VetNetUITestCase: XCTestCase {
     ///   - testScenario: Optional test scenario ID to activate
     ///   - additionalArguments: Additional launch arguments for the test
     /// - Returns: Configured and launched XCUIApplication
-    @MainActor
+    @MainActor // swiftlint:disable:this test_case_accessibility
     func makeApp(testScenario: String? = nil, additionalArguments: [String] = []) -> XCUIApplication {
         // Terminate existing app if any
         if let existingApp = app {

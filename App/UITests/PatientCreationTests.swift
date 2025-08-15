@@ -25,7 +25,7 @@ final class PatientCreationTests: VetNetUITestCase {
             .tapSave()
 
         // Verify success
-        patientCreationScreen.assertPatientCreatedSuccessfully(id: "00000000-0000-0000-0000-000000000001")
+        patientCreationScreen.assertPatientCreatedSuccessfully(id: "00000000-0000-0000-0000-000000000002") // ID is 2 because there is one event id generated before actual patient
     }
 
     // MARK: - Phase 2: Form Validation Tests

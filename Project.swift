@@ -3,6 +3,7 @@
 // Created by Daniel Moro on 2025-07-21 18:27 GMT.
 
 import ProjectDescription
+import ProjectDescriptionHelpers
 
 let project = Project(
     name: "VetNet",
@@ -39,6 +40,18 @@ let project = Project(
                 "com.apple.security.network.client": true,
                 "com.apple.security.files.user-selected.read-write": true
             ]),
+            scripts: [
+                .pre(
+                    script: .formatScript(),
+                    name: "Format",
+                    basedOnDependencyAnalysis: false
+                ),
+                .pre(
+                    script: .lintScript(),
+                    name: "Lint",
+                    basedOnDependencyAnalysis: false
+                )
+            ],
             dependencies: [
                 .external(name: "FactoryKit"),
                 .package(product: "SwiftUIRouting"),

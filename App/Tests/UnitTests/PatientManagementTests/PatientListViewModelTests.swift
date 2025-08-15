@@ -28,7 +28,7 @@ struct PatientListViewModelTests {
     @Test("ViewModel subscribes to FormPresentationCompleted events on initialization")
     func subscribesOnInit() async throws {
         // Given & When
-        let (_, eventBroker) = makeSUT()
+        let (sut, eventBroker) = makeSUT()
 
         // Then
         #expect(eventBroker.subscriptionCount == 1)

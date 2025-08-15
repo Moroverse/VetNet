@@ -113,7 +113,7 @@ public extension TestScenario {
             description: "Date provider returns fixed date for consistent time-based tests",
             serviceBehaviors: [
                 .uuidProvider: .custom(ControllableUUIDProvider.Behavior.sequential(start: 1)),
-                .dateProvider: .custom(ControllableDateProvider.Behavior.fixed(Date(timeIntervalSince1970: 1_700_000_000)))
+                .dateProvider: .custom(ControllableDateProvider.Behavior.fixed(Date(timeIntervalSince1970: 1_691_568_000)))
             ]
         )
 
