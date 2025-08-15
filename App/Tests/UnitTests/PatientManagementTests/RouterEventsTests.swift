@@ -1,7 +1,8 @@
 // RouterEventsTests.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-14 15:53 GMT.
+// Created by Daniel Moro on 2025-08-14 15:56 GMT.
 
+import FactoryKit
 import Foundation
 import StateKit
 import Testing
@@ -9,21 +10,31 @@ import Testing
 
 @Suite("Router Events Tests")
 struct RouterEventsTests {
+    @MainActor
+    private func makeSUT(date: Date, uuid: UUID) -> RouterEventFactory {
+        Container.shared.dateProvider.register {
+            MockDateProvider(date: date)
+        }
+
+        Container.shared.uuidProvider.register {
+            MockUUIDProvider(uuid: uuid)
+        }
+
+        let eventFactory = RouterEventFactory()
+
+        return eventFactory
+    }
+
     @Test("RouterEventFactory creates FormPresentationRequested with controlled dependencies")
     @MainActor func formPresentationRequestedEventCreation() {
         // Given
         let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
         let fixedUUID = UUID(uuidString: "12345678-1234-5678-9012-123456789012")!
-        let mockDateProvider = MockDateProvider(date: fixedDate)
-        let mockUUIDProvider = MockUUIDProvider(uuid: fixedUUID)
-        let factory = RouterEventFactory(
-            dateProvider: mockDateProvider,
-            uuidProvider: mockUUIDProvider
-        )
+        let sut = makeSUT(date: fixedDate, uuid: fixedUUID)
         let mode = PatientFormMode.create
 
         // When
-        let event = factory.formPresentationRequested(mode: mode)
+        let event = sut.formPresentationRequested(mode: mode)
 
         // Then
         #expect(event.mode == mode)
@@ -37,17 +48,12 @@ struct RouterEventsTests {
         // Given
         let fixedDate = Date(timeIntervalSince1970: 1_700_000_000)
         let fixedUUID = UUID(uuidString: "12345678-1234-5678-9012-123456789012")!
-        let mockDateProvider = MockDateProvider(date: fixedDate)
-        let mockUUIDProvider = MockUUIDProvider(uuid: fixedUUID)
-        let factory = RouterEventFactory(
-            dateProvider: mockDateProvider,
-            uuidProvider: mockUUIDProvider
-        )
+        let sut = makeSUT(date: fixedDate, uuid: fixedUUID)
         let mode = PatientFormMode.create
         let result = PatientFormResult.created(Patient.mock)
 
         // When
-        let event = factory.formPresentationCompleted(mode: mode, result: result)
+        let event = sut.formPresentationCompleted(mode: mode, result: result)
 
         // Then
         #expect(event.mode == mode)

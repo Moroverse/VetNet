@@ -233,6 +233,15 @@ extension Container {
         .singleton
     }
 
+    /// Factory for creating router events with controlled dependencies
+    @MainActor
+    var routerEventFactory: Factory<RouterEventFactory> {
+        self {
+            RouterEventFactory()
+        }
+        .cached
+    }
+
     /// Feature flag service for configuration management
     /// - Returns: FeatureFlagService implementation
     /// - Note: Uses UserDefaults-based service, debug service in test environments

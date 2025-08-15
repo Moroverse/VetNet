@@ -4,6 +4,7 @@
 
 import FactoryKit
 import Observation
+import StateKit
 import SwiftUIRouting
 
 // MARK: - Patient Form Router
@@ -14,12 +15,23 @@ final class PatientManagementFormRouter: BaseFormRouter<PatientFormMode, Patient
     /// Callback to refresh the patient list when a patient is created or updated
     var onPatientListNeedsRefresh: (() async -> Void)?
 
+    @Injected(\.routerEventBroker)
+    private var eventBroker: EventBroker
+    @Injected(\.routerEventFactory)
+    private var eventFactory: RouterEventFactory
+
     // MARK: - Form Routing Methods
 
     func createPatient() async -> PatientFormResult {
+        // Publish form presentation requested event
+        eventBroker.publish(eventFactory.formPresentationRequested(mode: .create))
+
         let result = await presentForm(.create)
 
-        // Trigger list refresh if patient was created successfully
+        // Publish form presentation completed event
+        eventBroker.publish(eventFactory.formPresentationCompleted(mode: .create, result: result))
+
+        // Trigger list refresh if patient was created successfully (keeping callback during transition)
         if case .created = result {
             await onPatientListNeedsRefresh?()
         }
@@ -28,9 +40,17 @@ final class PatientManagementFormRouter: BaseFormRouter<PatientFormMode, Patient
     }
 
     func editPatient(_ patient: Patient) async -> PatientFormResult {
-        let result = await presentForm(.edit(patient))
+        let mode = PatientFormMode.edit(patient)
 
-        // Trigger list refresh if patient was updated successfully
+        // Publish form presentation requested event
+        eventBroker.publish(eventFactory.formPresentationRequested(mode: mode))
+
+        let result = await presentForm(mode)
+
+        // Publish form presentation completed event
+        eventBroker.publish(eventFactory.formPresentationCompleted(mode: mode, result: result))
+
+        // Trigger list refresh if patient was updated successfully (keeping callback during transition)
         if case .updated = result {
             await onPatientListNeedsRefresh?()
         }
@@ -41,15 +61,39 @@ final class PatientManagementFormRouter: BaseFormRouter<PatientFormMode, Patient
     // MARK: - Navigation Methods
 
     func navigateToPatientDetail(_ patient: Patient) {
-        navigate(to: PatientRoute.patientDetail(patient))
+        let route = PatientRoute.patientDetail(patient)
+
+        // Publish navigation requested event
+        eventBroker.publish(eventFactory.navigationRequested(route: route))
+
+        navigate(to: route)
+
+        // Publish navigation completed event
+        eventBroker.publish(eventFactory.navigationCompleted(route: route))
     }
 
     func navigateToMedicalHistory(_ patient: Patient) {
-        navigate(to: PatientRoute.medicalHistory(patient))
+        let route = PatientRoute.medicalHistory(patient)
+
+        // Publish navigation requested event
+        eventBroker.publish(eventFactory.navigationRequested(route: route))
+
+        navigate(to: route)
+
+        // Publish navigation completed event
+        eventBroker.publish(eventFactory.navigationCompleted(route: route))
     }
 
     func navigateToAppointmentHistory(_ patient: Patient) {
-        navigate(to: PatientRoute.appointmentHistory(patient))
+        let route = PatientRoute.appointmentHistory(patient)
+
+        // Publish navigation requested event
+        eventBroker.publish(eventFactory.navigationRequested(route: route))
+
+        navigate(to: route)
+
+        // Publish navigation completed event
+        eventBroker.publish(eventFactory.navigationCompleted(route: route))
     }
 }
 

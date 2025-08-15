@@ -1,20 +1,18 @@
 // RouterEventFactory.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-14 15:52 GMT.
+// Created by Daniel Moro on 2025-08-14 15:56 GMT.
 
+import FactoryKit
 import Foundation
 import StateKit
 
 /// Factory for creating router events with controlled dependencies
 /// Enables predictable testing by injecting DateProvider and UUIDProvider
 final class RouterEventFactory: Sendable {
-    private let dateProvider: DateProvider
-    private let uuidProvider: UUIDProvider
-
-    init(dateProvider: DateProvider, uuidProvider: UUIDProvider) {
-        self.dateProvider = dateProvider
-        self.uuidProvider = uuidProvider
-    }
+    @Injected(\.dateProvider)
+    private var dateProvider: DateProvider
+    @Injected(\.uuidProvider)
+    private var uuidProvider: UUIDProvider
 
     func formPresentationRequested(mode: PatientFormMode) -> FormPresentationRequested {
         FormPresentationRequested(

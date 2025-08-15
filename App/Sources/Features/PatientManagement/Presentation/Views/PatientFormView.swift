@@ -7,7 +7,6 @@ import QuickForm
 import StateKit
 import SwiftUI
 import SwiftUIRouting
-import TestableView
 
 // MARK: - Patient Creation View
 
