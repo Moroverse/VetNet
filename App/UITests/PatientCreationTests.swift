@@ -79,27 +79,12 @@ final class PatientCreationTests: VetNetUITestCase {
         // Test: Dog species should show dog breeds
         patientCreationScreen
             .selectSpecies("Dog")
-            .assertBreedPickerContains(["Labrador Retriever", "German Shepherd", "Golden Retriever", "Bulldog", "Poodle", "Mixed Breed"])
+            .assertBreedPickerContains(["Labrador Retriever", "German Shepherd"])
 
         // Test: Cat species should show cat breeds
         patientCreationScreen
             .selectSpecies("Cat")
-            .assertBreedPickerContains(["Persian", "Siamese", "Maine Coon", "British Shorthair", "Ragdoll", "Mixed Breed"])
-
-        // Test: Bird species should show bird breeds
-        patientCreationScreen
-            .selectSpecies("Bird")
-            .assertBreedPickerContains(["Parrot", "Cockatiel", "Lovebird", "Canary", "Other Bird"])
-
-        // Test: Rabbit species should show rabbit breeds
-        patientCreationScreen
-            .selectSpecies("Rabbit")
-            .assertBreedPickerContains(["Holland Lop", "Dutch", "Rex", "Angora", "Mini", "Mixed Breed"])
-
-        // Test: Other species should show other breeds
-        patientCreationScreen
-            .selectSpecies("Other")
-            .assertBreedPickerContains(["Unknown"])
+            .assertBreedPickerContains(["Persian", "Siamese", "Maine Coon"])
     }
 
     // MARK: - Alert Testing

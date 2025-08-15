@@ -44,6 +44,7 @@ class PatientListScreen: VetNetScreen {
 /// Patient creation screen object
 class PatientCreationScreen: VetNetScreen {
     @MainActor
+    @discardableResult
     func enterPatientName(_ name: String) -> PatientCreationScreen {
         // Find the name field using accessibility identifier from PatientFormView.swift
         let nameField = app.textFields["patient_creation_name_field"]
@@ -54,6 +55,7 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func selectSpecies(_ species: String) -> PatientCreationScreen {
         // Find and tap the species picker using accessibility identifier
         let speciesPicker = app.buttons["patient_creation_species_picker"]
@@ -69,6 +71,7 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func selectBreed(_ breed: String) -> PatientCreationScreen {
         // Find and tap the breed picker using accessibility identifier
         let breedPicker = app.buttons["patient_creation_breed_picker"]
@@ -84,30 +87,12 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func enterWeight(_ weight: String) -> PatientCreationScreen {
         // Find the weight field using accessibility identifier from PatientFormView.swift
         let weightField = app.textFields["patient_creation_weight_field"]
         XCTAssertTrue(weightField.waitForExistence(timeout: 2), "Weight field should exist")
         weightField.tap()
-
-//        // Clear existing text (the default "0")
-//        if let currentValue = weightField.value as? String, !currentValue.isEmpty {
-//            // Select all and delete
-//            weightField.tap()
-//            weightField.press(forDuration: 1.0) // Long press to bring up menu
-//
-//            // Try to select all from menu
-//            let selectAll = app.menuItems["Select All"]
-//            if selectAll.waitForExistence(timeout: 1.0) {
-//                selectAll.tap()
-//            } else {
-//                // Fallback: triple-tap to select all
-//                weightField.tap(withNumberOfTaps: 3, numberOfTouches: 1)
-//            }
-//
-//            // Type delete key
-//            weightField.typeText(XCUIKeyboardKey.delete.rawValue)
-//        }
 
         // Use locale-appropriate decimal separator
         let locale = Locale.current
@@ -119,6 +104,7 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func enterOwnerName(_ name: String) -> PatientCreationScreen {
         // Find the owner name field using accessibility identifier from PatientFormView.swift
         let ownerNameField = app.textFields["patient_creation_owner_name_field"]
@@ -129,6 +115,7 @@ class PatientCreationScreen: VetNetScreen {
     }
 
     @MainActor
+    @discardableResult
     func enterOwnerPhone(_ phone: String) -> PatientCreationScreen {
         // Find the owner phone field using accessibility identifier from PatientFormView.swift
         let ownerPhoneField = app.textFields["patient_creation_owner_phone_field"]
@@ -182,6 +169,7 @@ class PatientCreationScreen: VetNetScreen {
     // MARK: - Date Picker Interaction Methods
 
     @MainActor
+    @discardableResult
     func selectFutureBirthDate() -> PatientCreationScreen {
         // With fixed date "2023-08-09T08:00:00Z", we can select a specific future date
         // Let's select September 15, 2023 (clearly in the future)

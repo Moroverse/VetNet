@@ -45,26 +45,17 @@ struct PatientManagementView: View {
 
 struct PatientListView: View {
     @InjectedObservable(\.patientManagementRouter) var router
-    @State private var listModel: SearchScopeListModel<Paginated<Patient>, PatientQuery, SearchScope>
-
-    init() {
-        @Injected(\.patientLoaderAdapter) var loaderAdapter
-        let lModel = SearchScopeListModel(searchScope: SearchScope.all, loader: loaderAdapter.load) { searchText, scope in
-            PatientQuery(searchText: searchText, scope: scope)
-        }
-
-        _listModel = State(initialValue: lModel)
-    }
+    @State private var viewModel = PatientListViewModel()
 
     var body: some View {
-        BasicList(viewModel: listModel, isSearchable: true, listRow: { patient in
+        BasicList(viewModel: viewModel.listModel, isSearchable: true, listRow: { patient in
             PatientRowView(patient: patient)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     router.navigateToPatientDetail(patient)
                 }
         })
-        .searchScopes($listModel.selectedScope) {
+        .searchScopes($viewModel.listModel.selectedScope) {
             ForEach(SearchScope.allCases, id: \.self) { scope in
                 Text(scope.rawValue)
             }
@@ -79,11 +70,13 @@ struct PatientListView: View {
                 }
             }
         }
-        .onAppear {
-            // Set up callback to refresh list when patients are created/updated
-            router.onPatientListNeedsRefresh = { [listModel] in
-                await listModel.load(forceReload: true)
-            }
+        .task {
+            // Load initial data
+            await viewModel.initialLoad()
+        }
+        .refreshable {
+            // Pull to refresh
+            await viewModel.refreshList()
         }
     }
 }

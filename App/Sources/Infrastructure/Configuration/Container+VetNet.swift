@@ -170,6 +170,12 @@ extension Container {
         .cached
     }
 
+    @MainActor
+    var patientListViewModel: Factory<PatientListViewModel> {
+        self { PatientListViewModel() }
+            .cached
+    }
+
     /// Date provider service for testable date operations
     /// - Returns: DateProvider implementation
     /// - Note: Cached for consistent date behavior across app
