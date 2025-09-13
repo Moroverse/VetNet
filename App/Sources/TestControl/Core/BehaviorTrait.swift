@@ -1,6 +1,6 @@
 // BehaviorTrait.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-10 19:32 GMT.
+// Created by Daniel Moro on 2025-08-11 11:15 GMT.
 
 import Foundation
 

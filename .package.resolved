@@ -1,13 +1,13 @@
 {
-  "originHash" : "c48c5e0d41ccde6732bce21f96fca04d5563fbc49c15122ed79598c9481428b5",
+  "originHash" : "ce1ba77fe3ad6905477f1b78c0088432bebe3c301512e9b300b8503f59240fbc",
   "pins" : [
     {
       "identity" : "quick-form",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Moroverse/quick-form",
       "state" : {
-        "branch" : "develop",
-        "revision" : "cec7424d89b6d2b31585bb2158a63c8244697e2f"
+        "revision" : "a9e0cda80cb6cec4e194f20bd76d90fdca87398e",
+        "version" : "0.2.0"
       }
     },
     {

@@ -1,6 +1,6 @@
 // PatientDetailsView.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-13 09:36 GMT.
+// Created by Daniel Moro on 2025-08-13 15:33 GMT.
 
 import SwiftUI
 

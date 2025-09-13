@@ -8,7 +8,7 @@ import ProjectDescriptionHelpers
 let project = Project(
     name: "VetNet",
     packages: [
-        .package(url: "https://github.com/Moroverse/quick-form", .branch("develop")),
+        .package(url: "https://github.com/Moroverse/quick-form", .upToNextMajor(from: "0.2.0")),
         .package(path: "Modules/SwiftUIRouting")
     ],
     targets: [
@@ -80,14 +80,16 @@ let project = Project(
                 .external(name: "ViewInspector"),
                 .external(name: "FactoryTesting"),
                 .external(name: "TestKit"),
-                .external(name: "ConcurrencyExtras")
+                .external(name: "ConcurrencyExtras"),
+                .package(product: "QuickForm")
             ],
             settings:
             .settings(
                 base: [
                     "SWIFT_VERSION": "6.0",
                     "SWIFT_APPROACHABLE_CONCURRENCY": true,
-                    "SWIFT_STRICT_CONCURRENCY": "Complete"
+                    "SWIFT_STRICT_CONCURRENCY": "Complete",
+                    "OTHER_SWIFT_FLAGS": "-enable-experimental-feature MacroExpansionDiagnostics"
                 ],
                 configurations: []
             )

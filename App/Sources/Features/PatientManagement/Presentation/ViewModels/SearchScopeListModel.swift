@@ -1,6 +1,6 @@
 // SearchScopeListModel.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-14 02:41 GMT.
+// Created by Daniel Moro on 2025-08-14 04:08 GMT.
 
 import QuickForm
 import StateKit

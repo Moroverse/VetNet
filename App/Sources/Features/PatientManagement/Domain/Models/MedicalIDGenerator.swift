@@ -47,7 +47,7 @@ nonisolated enum MedicalIDGenerator {
 
 // MARK: - Private Implementation
 
-private extension MedicalIDGenerator {
+private nonisolated extension MedicalIDGenerator {
     /// Generate date component (YYYYMM format)
     static func dateComponent() -> String {
         let formatter = DateFormatter()
@@ -79,7 +79,7 @@ private extension MedicalIDGenerator {
 
 // MARK: - Species Extension
 
-private extension Species {
+private nonisolated extension Species {
     /// Three-letter medical code for this species
     var medicalCode: String {
         switch self {

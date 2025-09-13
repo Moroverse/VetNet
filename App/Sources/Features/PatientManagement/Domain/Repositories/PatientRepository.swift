@@ -93,7 +93,7 @@ nonisolated enum RepositoryError: Error, Sendable {
 
 // MARK: - Repository Error Extensions
 
-extension RepositoryError: LocalizedError, Equatable {
+nonisolated extension RepositoryError: LocalizedError, Equatable {
     nonisolated var errorDescription: String? {
         switch self {
         case .notFound:

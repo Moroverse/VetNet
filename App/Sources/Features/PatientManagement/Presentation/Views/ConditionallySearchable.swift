@@ -1,6 +1,6 @@
 // ConditionallySearchable.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-03-31 06:20 GMT.
+// Created by Daniel Moro on 2025-08-10 06:38 GMT.
 
 import SwiftUI
 

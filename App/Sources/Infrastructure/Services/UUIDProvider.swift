@@ -1,6 +1,6 @@
 // UUIDProvider.swift
 // Copyright (c) 2025 Moroverse
-// Created by Daniel Moro on 2025-08-10 19:38 GMT.
+// Created by Daniel Moro on 2025-08-11 11:15 GMT.
 
 import Foundation
 
@@ -73,13 +73,13 @@ public final nonisolated class ControllableUUIDProvider: UUIDProvider, TestContr
 
     // MARK: - TestControllable
 
-    public func applyBehavior(_ behavior: Behavior) {
+    public nonisolated func applyBehavior(_ behavior: Behavior) {
         self.behavior = behavior
         counter = 0
         cycleIndex = 0
     }
 
-    public func resetBehavior() {
+    public nonisolated func resetBehavior() {
         behavior = .random
         counter = 0
         cycleIndex = 0
@@ -89,7 +89,7 @@ public final nonisolated class ControllableUUIDProvider: UUIDProvider, TestContr
 // MARK: - Test Helpers
 
 #if DEBUG
-    extension ControllableUUIDProvider {
+    nonisolated extension ControllableUUIDProvider {
         /// Create a sequential UUID provider for testing
         static func sequential(start: Int = 1) -> ControllableUUIDProvider {
             let provider = ControllableUUIDProvider()
